@@ -49,4 +49,4 @@ measured in feet in the Quantity Measurement Application.
   - testEquality_InchToInch_DifferentValue()
 
 🔗 *Code Link:*  
-[UC3: Generic Quantity Class for DRY Principle](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC3-GenericQuantityClassForDRYPrinciple)
+[UC3: Generic Quantity Class for DRY Principle](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC3-GenericLength)
