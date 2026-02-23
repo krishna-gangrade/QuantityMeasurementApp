@@ -1,6 +1,6 @@
 package com.apps.quantitymeasurement;
 
-public enum WeightUnit {
+public enum WeightUnit implements IMeasurable {
 
     MILLIGRAM(0.001),
     GRAM(1.0),
@@ -14,24 +14,31 @@ public enum WeightUnit {
         this.conversionFactor = conversionFactor;
     }
 
+    @Override
     public double getConversionFactor() {
         return conversionFactor;
     }
 
+    @Override
     public double convertToBaseUnit(double value) {
         return Math.round((value * conversionFactor) * 100.0) / 100.0;
     }
 
+    @Override
     public double convertFromBaseUnit(double baseValue) {
         return Math.round((baseValue / conversionFactor) * 100.0) / 100.0;
     }
 
+    public String getUnitName() {
+		return this.name();
+	}
+    
     public static void main(String[] args) {
-        double kilograms = 10.0;
+        double kilograms = 1.0;
         double grams = WeightUnit.KILOGRAM.convertToBaseUnit(kilograms);
-        System.out.println(kilograms + " kilograms is " + grams + " grams.");
+        System.out.println(kilograms + " KILOGRAM = " + grams + " GRAMS");
 
-        double milligrams = WeightUnit.MILLIGRAM.convertFromBaseUnit(grams);
-        System.out.println(grams + " grams is " + milligrams + " milligrams.");
+        double pounds = WeightUnit.POUND.convertFromBaseUnit(grams);
+        System.out.println(grams + " GRAMS = " + pounds + " POUNDS");
     }
 }
