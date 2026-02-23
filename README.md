@@ -170,3 +170,55 @@ measured in feet in the Quantity Measurement Application.
 
 🔗 *Code Link:*  
 [UC7: Addition with Target Unit Specification](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC7-TargetUnitAddition)
+
+## 🗓 UC8: Refactoring Unit Enum to Standalone with Conversion Responsibility
+*(Date: 22-Feb-2026)*
+
+- Refactoring the design from UC1–UC7 to extract LengthUnit enum as a standalone top-level class.
+- Removing LengthUnit from inside QuantityLength to eliminate circular dependency risk.
+- Assigning conversion responsibility to LengthUnit.
+- Implementing:
+  - convertToBaseUnit(double value)
+  - convertFromBaseUnit(double baseValue)
+- Delegating all conversion logic from QuantityLength to LengthUnit.
+- Simplifying QuantityLength to focus only on:
+  - Equality comparison
+  - Arithmetic operations
+- Maintaining backward compatibility:
+  - All UC1–UC7 test cases pass without modification.
+  - Public API remains unchanged.
+- Improving cohesion and reducing coupling.
+- Establishing scalable architectural pattern for future measurement categories (WeightUnit, VolumeUnit, etc.).
+- Upholding Single Responsibility Principle:
+  - LengthUnit → conversion responsibility
+  - QuantityLength → comparison and arithmetic responsibility
+
+- Creating JUnit test cases :
+  - testLengthUnitEnum_FeetConstant()
+  - testLengthUnitEnum_InchesConstant()
+  - testLengthUnitEnum_YardsConstant()
+  - testLengthUnitEnum_CentimetersConstant()
+  - testConvertToBaseUnit_FeetToFeet()
+  - testConvertToBaseUnit_InchesToFeet()
+  - testConvertToBaseUnit_YardsToFeet()
+  - testConvertToBaseUnit_CentimetersToFeet()
+  - testConvertFromBaseUnit_FeetToFeet()
+  - testConvertFromBaseUnit_FeetToInches()
+  - testConvertFromBaseUnit_FeetToYards()
+  - testConvertFromBaseUnit_FeetToCentimeters()
+  - testQuantityLengthRefactored_Equality()
+  - testQuantityLengthRefactored_ConvertTo()
+  - testQuantityLengthRefactored_Add()
+  - testQuantityLengthRefactored_AddWithTargetUnit()
+  - testQuantityLengthRefactored_NullUnit()
+  - testQuantityLengthRefactored_InvalidValue()
+  - testBackwardCompatibility_UC1EqualityTests()
+  - testBackwardCompatibility_UC5ConversionTests()
+  - testBackwardCompatibility_UC6AdditionTests()
+  - testBackwardCompatibility_UC7AdditionWithTargetUnitTests()
+  - testArchitecturalScalability_MultipleCategories()
+  - testRoundTripConversion_RefactoredDesign()
+  - testUnitImmutability()
+
+🔗 *Code Link:*  
+[UC8: Refactoring Unit Enum to Standalone](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC8-StandAloneUnit)
