@@ -1,6 +1,75 @@
 package com.apps.quantitymeasurement;
 
 public class QuantityMeasurementApp {
+	
+	// Demonstrate weight equality between two Weight instances
+	public static boolean demonstrateWeightEquality(Weight weight1, Weight weight2) {
+	    return weight1.equals(weight2);
+	}
+
+
+	// Demonstrate weight comparison between two weights specified by value and unit
+	public static boolean demonstrateWeightComparison(
+	        double value1, WeightUnit unit1,
+	        double value2, WeightUnit unit2) {
+
+	    Weight w1 = new Weight(value1, unit1);
+	    Weight w2 = new Weight(value2, unit2);
+
+	    boolean result = w1.equals(w2);
+	    System.out.println(w1 + " == " + w2 + " ? " + result);
+	    return result;
+	}
+
+
+	// Demonstrate weight conversion using raw values
+	public static Weight demonstrateWeightConversion(
+	        double value, WeightUnit fromUnit,
+	        WeightUnit toUnit) {
+
+	    Weight source = new Weight(value, fromUnit);
+	    Weight converted = source.convertTo(toUnit);
+
+	    System.out.println(source + " -> " + converted);
+	    return converted;
+	}
+
+
+	// Demonstrate weight conversion using existing Weight object
+	public static Weight demonstrateWeightConversion(
+	        Weight weight, WeightUnit toUnit) {
+
+	    Weight converted = weight.convertTo(toUnit);
+
+	    System.out.println(weight + " -> " + converted);
+	    return converted;
+	}
+
+
+	// Demonstrate addition of two weights (implicit target = first operand unit)
+	public static Weight demonstrateWeightAddition(
+	        Weight weight1, Weight weight2) {
+
+	    Weight sum = weight1.add(weight2);
+
+	    System.out.println(weight1 + " + " + weight2 + " = " + sum);
+	    return sum;
+	}
+
+
+	// Demonstrate addition of two weights with explicit target unit
+	public static Weight demonstrateWeightAddition(
+	        Weight weight1, Weight weight2,
+	        WeightUnit targetUnit) {
+
+	    Weight sum = weight1.add(weight2, targetUnit);
+
+	    System.out.println(weight1 + " + " + weight2 +
+	            " in " + targetUnit + " = " + sum);
+
+	    return sum;
+	}
+	
 
 	// Static method to demonstrate Length equality
 	public static boolean demonstrateLengthEquality(Length l1, Length l2) {
@@ -139,5 +208,72 @@ public class QuantityMeasurementApp {
 			new Length(-2.0, LengthUnit.FEET),
 			LengthUnit.INCHES
 		);
+
+		demonstrateWeightComparison(1.0, WeightUnit.KILOGRAM, 1000.0, WeightUnit.GRAM);
+		demonstrateWeightComparison(2.0, WeightUnit.POUND, 907.18, WeightUnit.GRAM);
+		demonstrateWeightComparison(500.0, WeightUnit.GRAM, 0.5, WeightUnit.KILOGRAM);
+		demonstrateWeightComparison(1.0, WeightUnit.KILOGRAM, 2.0, WeightUnit.KILOGRAM);
+
+		
+		demonstrateWeightConversion(1.0, WeightUnit.KILOGRAM, WeightUnit.GRAM);
+		demonstrateWeightConversion(1000.0, WeightUnit.GRAM, WeightUnit.KILOGRAM);
+		demonstrateWeightConversion(2.0, WeightUnit.POUND, WeightUnit.KILOGRAM);
+		demonstrateWeightConversion(500.0, WeightUnit.GRAM, WeightUnit.POUND);
+		demonstrateWeightConversion(1.0, WeightUnit.TONNE, WeightUnit.KILOGRAM);
+
+		// Round trip test
+		Weight original = new Weight(5.0, WeightUnit.KILOGRAM);
+		Weight roundTrip = original.convertTo(WeightUnit.GRAM)
+		                           .convertTo(WeightUnit.KILOGRAM);
+		System.out.println("Round Trip: " + original + " -> " + roundTrip);
+
+		demonstrateWeightAddition(
+		        new Weight(1.0, WeightUnit.KILOGRAM),
+		        new Weight(1000.0, WeightUnit.GRAM)
+		);
+
+		demonstrateWeightAddition(
+		        new Weight(2.0, WeightUnit.POUND),
+		        new Weight(500.0, WeightUnit.GRAM)
+		);
+
+		demonstrateWeightAddition(
+		        new Weight(5.0, WeightUnit.KILOGRAM),
+		        new Weight(0.0, WeightUnit.GRAM)
+		);
+
+		demonstrateWeightAddition(
+		        new Weight(5.0, WeightUnit.KILOGRAM),
+		        new Weight(-2000.0, WeightUnit.GRAM)
+		);
+
+		demonstrateWeightAddition(
+		        new Weight(1.0, WeightUnit.KILOGRAM),
+		        new Weight(1000.0, WeightUnit.GRAM),
+		        WeightUnit.GRAM
+		);
+
+		demonstrateWeightAddition(
+		        new Weight(2.0, WeightUnit.POUND),
+		        new Weight(1.0, WeightUnit.KILOGRAM),
+		        WeightUnit.POUND
+		);
+
+		demonstrateWeightAddition(
+		        new Weight(500.0, WeightUnit.GRAM),
+		        new Weight(0.5, WeightUnit.KILOGRAM),
+		        WeightUnit.KILOGRAM
+		);
+
+		
+
+		demonstrateWeightComparison(0.0, WeightUnit.KILOGRAM, 0.0, WeightUnit.GRAM);
+
+		demonstrateWeightAddition(
+		        new Weight(1e6, WeightUnit.KILOGRAM),
+		        new Weight(1e6, WeightUnit.KILOGRAM)
+		);
+
+		demonstrateWeightComparison(0.001, WeightUnit.KILOGRAM, 1.0, WeightUnit.GRAM);
 	}
 }
