@@ -71,3 +71,34 @@ measured in feet in the Quantity Measurement Application.
 
 🔗 *Code Link:*  
 [UC4: Extended Unit Support](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC4-YardEquality)
+
+## 🗓 UC5: Unit-to-Unit Conversion
+*(Date: 20-Feb-2026)*
+
+- Extending the Quantity Length class to provide explicit unit-to-unit conversion functionality.
+- Introducing a public API method :
+  - static double convert(double value, LengthUnit sourceUnit, LengthUnit targetUnit)
+- Supporting conversions between units (feet, inches, yards or centimeters).
+- The Quantity Length class validates the input value to ensure it is finite (not NaN or Infinite).
+- The Quantity Length class validates that source and target units are non-null and supported.
+- The input value is converted to a common base unit (feet).
+- The base unit value is converted to the target unit using conversion factors.
+- Floating-point precision is handled using epsilon tolerance.
+- Invalid inputs throw IllegalArgumentException.
+
+- Creating JUnit test cases :
+  - testConversion_FeetToInches()
+  - testConversion_InchesToFeet()
+  - testConversion_YardsToInches()
+  - testConversion_InchesToYards()
+  - testConversion_CentimetersToInches()
+  - testConversion_FeetToYard()
+  - testConversion_RoundTrip_PreservesValue()
+  - testConversion_ZeroValue()
+  - testConversion_NegativeValue()
+  - testConversion_InvalidUnit_Throws()
+  - testConversion_NaNOrInfinite_Throws()
+  - testConversion_PrecisionTolerance()
+
+🔗 *Code Link:*  
+[UC5: Unit-to-Unit Conversion](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC5-UnitConversion)
