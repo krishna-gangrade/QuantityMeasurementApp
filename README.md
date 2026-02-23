@@ -136,3 +136,37 @@ measured in feet in the Quantity Measurement Application.
 🔗 *Code Link:*  
 [UC6: Addition of Two Length Units](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC6-UnitAddition)
 
+## 🗓 UC7: Addition with Target Unit Specification
+*(Date: 23-Feb-2026)*
+
+- Extending UC6 by allowing explicit specification of the target unit for the addition result.
+- Enabling addition of two Quantity Length objects with the result returned in any supported unit.
+- Supporting target units (feet, inches, yards, centimeters) regardless of operand units.
+- Validating:
+  - Both operands are non-null.
+  - targetUnit is non-null and valid.
+  - All values are finite numbers (not NaN or Infinite).
+- Converting both operands to a common base unit (feet).
+- Adding the normalized values.
+- Converting the sum to the explicitly specified target unit.
+- Returning a new Quantity Length object (immutability principle).
+- Throwing IllegalArgumentException for invalid inputs.
+
+- Creating JUnit test cases :
+  - testAddition_ExplicitTargetUnit_Feet()
+  - testAddition_ExplicitTargetUnit_Inches()
+  - testAddition_ExplicitTargetUnit_Yards()
+  - testAddition_ExplicitTargetUnit_Centimeters()
+  - testAddition_ExplicitTargetUnit_SameAsFirstOperand()
+  - testAddition_ExplicitTargetUnit_SameAsSecondOperand()
+  - testAddition_ExplicitTargetUnit_Commutativity()
+  - testAddition_ExplicitTargetUnit_WithZero()
+  - testAddition_ExplicitTargetUnit_NegativeValues()
+  - testAddition_ExplicitTargetUnit_NullTargetUnit()
+  - testAddition_ExplicitTargetUnit_LargeToSmallScale()
+  - testAddition_ExplicitTargetUnit_SmallToLargeScale()
+  - testAddition_ExplicitTargetUnit_AllUnitCombinations()
+  - testAddition_ExplicitTargetUnit_PrecisionTolerance()
+
+🔗 *Code Link:*  
+[UC7: Addition with Target Unit Specification](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC7-TargetUnitAddition)
