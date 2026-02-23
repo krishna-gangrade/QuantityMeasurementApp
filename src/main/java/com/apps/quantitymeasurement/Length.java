@@ -6,26 +6,6 @@ public class Length {
 	private final LengthUnit unit;
 	private static final double EPSILON = 1e-6;
 
-	// Enum to represent supported units of length
-	public enum LengthUnit {
-
-		FEET(12.0), // Conversion factor: 1 Foot = 12 Inches
-		INCHES(1.0), // Conversion factor: 1 Inch = 1 Inch (base unit)
-		YARDS(36.0), // Conversion factor: 1 Yard = 36 Inches
-		CENTIMETERS(1.0 / 2.54); // Conversion factor: 1 cm = 0.393701 Inches
-
-		private final double conversionFactor;
-
-		LengthUnit(double conversionFactor) {
-			this.conversionFactor = conversionFactor;
-		}
-
-		public double getConversionFactor() {
-			return conversionFactor;
-		}
-	}
-
-	// Constructor to initialize Length with value and unit
 	public Length(double value, LengthUnit unit) {
 		if (unit == null) {
 			throw new IllegalArgumentException("Unit cannot be null");
@@ -38,19 +18,6 @@ public class Length {
 		this.unit = unit;
 	}
 
-	// Convert the length to base unit (inches)
-	private double convertToBaseUnit() {
-		return value * unit.getConversionFactor();
-	}
-
-	// Private helper method to compare two Lengths
-	private boolean compare(Length that) {
-		double thisValue = this.convertToBaseUnit();
-		double thatValue = that.convertToBaseUnit();
-		return Math.abs(thisValue - thatValue) < EPSILON;
-	}
-
-	// Override equals() to compare lengths across units
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -65,44 +32,17 @@ public class Length {
 		return compare(that);
 	}
 
-	@Override
-	public int hashCode() {
-		long normalized = Math.round(convertToBaseUnit() / EPSILON);
-		return Long.hashCode(normalized);
-	}
-
-	@Override
-	public String toString() {
-		return String.format("%.2f %s", value, unit);
-	}
-
-	// Convert this length to the specified target unit
 	public Length convertTo(LengthUnit targetUnit) {
 		if (targetUnit == null) {
 			throw new IllegalArgumentException("Target unit cannot be null");
 		}
 		double baseValue = this.convertToBaseUnit();
-		double convertedValue = baseValue / targetUnit.getConversionFactor();
+		double convertedValue = targetUnit.convertFromBaseUnit(baseValue);
 
 		convertedValue = Math.round(convertedValue * 1000000.0) / 1000000.0;
 		return new Length(convertedValue, targetUnit);
 	}
 
-	// Static method for direct numeric conversion
-	public static double convert(double value, LengthUnit source, LengthUnit target) {
-		if (source == null || target == null) {
-			throw new IllegalArgumentException("Units cannot be null");
-		}
-		if (!Double.isFinite(value)) {
-			throw new IllegalArgumentException("Value must be a finite number");
-		}
-
-		double baseValue = value * source.getConversionFactor();
-		double convertedValue = baseValue / target.getConversionFactor();
-		return Math.round(convertedValue * 1000000.0) / 1000000.0;
-	}
-
-	// Add two lengths, result in unit of first operand
 	public Length add(Length thatLength) {
 		if (thatLength == null) {
 			throw new IllegalArgumentException("Operand cannot be null");
@@ -125,19 +65,39 @@ public class Length {
 		return addAndConvert(other, targetUnit);
 	}
 
+	private boolean compare(Length that) {
+		double thisValue = this.convertToBaseUnit();
+		double thatValue = that.convertToBaseUnit();
+		return Math.abs(thisValue - thatValue) < EPSILON;
+	}
+
 	private Length addAndConvert(Length other, LengthUnit targetUnit) {
 		double sumInBase = this.convertToBaseUnit() + other.convertToBaseUnit();
 		double sumInTargetUnit = convertFromBaseToTargetUnit(sumInBase, targetUnit);
 		return new Length(sumInTargetUnit, targetUnit);
 	}
 
-	// Helper: convert from base unit (inches) to target unit
+	private double convertToBaseUnit() {
+	    return unit.convertToBaseUnit(value);
+	}
+
 	private double convertFromBaseToTargetUnit(double lengthInInches, LengthUnit targetUnit) {
 		if (targetUnit == null) {
 			throw new IllegalArgumentException("Target unit cannot be null");
 		}
 		double convertedValue = lengthInInches / targetUnit.getConversionFactor();
 		return Math.round(convertedValue * 1000000.0) / 1000000.0;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s %s", Double.toString(value).replaceAll("\\.0+$", ""), unit);
+	}
+
+	@Override
+	public int hashCode() {
+		long normalized = Math.round(convertToBaseUnit() / EPSILON);
+		return Long.hashCode(normalized);
 	}
 
 	public static void main(String[] args) {
