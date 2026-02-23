@@ -50,3 +50,24 @@ measured in feet in the Quantity Measurement Application.
 
 🔗 *Code Link:*  
 [UC3: Generic Quantity Class for DRY Principle](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC3-GenericLength)
+
+## 🗓 UC4: Extended Unit Support
+*(Date: 20-Feb-2026)*
+
+- Main Flow
+  - Users input two numerical values with their respective unit types (feet, inches, yards or cms).
+  - The Quantity Length class validates the input values to ensure they are numeric.
+  - The QuantityLength class validates the unit type against supported units (feet, inches, yards, cms).
+  - Both values are converted to a common base unit (in or feet) using conversion factors.
+  - The converted values are compared for equality.
+  - The result of the comparison is returned to the user.
+- Creating JUnit test cases : 
+  - testEquality_YardToYard_SameValue()
+  - testEquality_YardToYard_DifferentValue()
+  - testEquality_YardToFeet_EquivalentValue()
+  - testEquality_FeetToYard_EquivalentValue()
+  - testEquality_YardToInches_EquivalentValue()
+  - testEquality_InchesToYard_EquivalentValue()
+
+🔗 *Code Link:*  
+[UC4: Extended Unit Support](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC4-YardEquality)
