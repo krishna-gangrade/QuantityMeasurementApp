@@ -228,6 +228,13 @@
 
 ---
 
+# Quantity Measurement App – UC10 (Generic Quantity Class with Unit Interface)
+
+### 📌 Overview
+
+- This module refactors the previous category-specific Quantity classes into a single, generic `Quantity<U>` class that works with any measurement category implementing the `IMeasurable` interface.
+- It eliminates code duplication, simplifies demonstration methods, and ensures type-safe operations across multiple measurement categories like length and weight.
+
 ### ⚙️ Use Case: UC10 – Generic Quantity and Multi-Category Support
 
 - Accepts two numerical values with their respective units
@@ -247,11 +254,18 @@
 - `hashCode()` and `toString()` overridden for collections and readable output
 - Type safety ensured at compile-time via generics; runtime unit class checks prevent cross-category errors
 - Demonstration methods in `QuantityMeasurementApp` are generic and unified for all categories
-
+- 
 🔗 **Code Link:**  
 [UC10: Generic Quantity Class with Unit Interface for Multi-Category Support](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC10-GenericQuality)
 
 ---
+
+# Quantity Measurement App – UC11 (Volume Equality, Conversion, and Addition)
+
+### 📌 Overview
+
+- This module extends the Quantity Measurement Application to support **volume measurements** (litres, millilitres, gallons).
+- It demonstrates equality comparison, unit conversion, and addition operations for volume, leveraging the generic `Quantity<U>` class and `IMeasurable` interface. - Volume is treated as a separate category from length and weight, validating the scalability of the generic architecture.
 
 ### ⚙️ Use Case:  UC11 – Volume Measurement Equality, Conversion, and Addition
 
