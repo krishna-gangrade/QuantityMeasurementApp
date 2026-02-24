@@ -228,6 +228,13 @@
 
 ---
 
+# Quantity Measurement App – UC10 (Generic Quantity Class with Unit Interface)
+
+### 📌 Overview
+
+- This module refactors the previous category-specific Quantity classes into a single, generic `Quantity<U>` class that works with any measurement category implementing the `IMeasurable` interface.
+- It eliminates code duplication, simplifies demonstration methods, and ensures type-safe operations across multiple measurement categories like length and weight.
+
 ### ⚙️ Use Case: UC10 – Generic Quantity and Multi-Category Support
 
 - Accepts two numerical values with their respective units
