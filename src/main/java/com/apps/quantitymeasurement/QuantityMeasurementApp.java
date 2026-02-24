@@ -10,8 +10,7 @@ public class QuantityMeasurementApp {
 
 	public static <U extends IMeasurable> Quantity<U> demonstrateConversion(Quantity<U> quantity, U targetUnit) {
 
-		double convertedValue = quantity.convertTo(targetUnit);
-		Quantity<U> result = new Quantity<>(convertedValue, targetUnit);
+		Quantity<U> result = quantity.convertTo(targetUnit);
 		System.out.println(quantity + " = " + result);
 		return result;
 	}
@@ -62,5 +61,23 @@ public class QuantityMeasurementApp {
 
 		Quantity<WeightUnit> sumWeightInGrams = demonstrateAddition(weightInKilograms, weightInPounds, WeightUnit.GRAM);
 		System.out.println("Sum Weight in Grams: " + sumWeightInGrams.getValue() + " " + sumWeightInGrams.getUnit());
+
+		// Volume Demonstration
+
+		Quantity<VolumeUnit> volumeInLitre = new Quantity<>(1.0, VolumeUnit.LITRE);
+		Quantity<VolumeUnit> volumeInMillilitre = new Quantity<>(1000.0, VolumeUnit.MILLILITRE);
+		Quantity<VolumeUnit> volumeInGallon = new Quantity<>(1.0, VolumeUnit.GALLON);
+		boolean volumeEqual = demonstrateEquality(volumeInLitre, volumeInMillilitre);
+		System.out.println("Are volumes equal? " + volumeEqual);
+
+		Quantity<VolumeUnit> convertedVolume = demonstrateConversion(volumeInGallon, VolumeUnit.LITRE);
+		System.out.println("Converted Volume: " + convertedVolume.getValue() + " " + convertedVolume.getUnit());
+
+		Quantity<VolumeUnit> sumVolume = demonstrateAddition(volumeInLitre, volumeInMillilitre);
+		System.out.println("Sum Volume: " + sumVolume.getValue() + " " + sumVolume.getUnit());
+
+		Quantity<VolumeUnit> sumVolumeInGallon = demonstrateAddition(volumeInLitre, volumeInMillilitre,
+				VolumeUnit.GALLON);
+		System.out.println("Sum Volume in Gallon: " + sumVolumeInGallon.getValue() + " " + sumVolumeInGallon.getUnit());
 	}
 }
