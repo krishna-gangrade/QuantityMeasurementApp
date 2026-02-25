@@ -6,7 +6,7 @@ public class Quantity<U extends IMeasurable> {
 
     private final double value;
     private final U unit;
-    private static final double EPSILON = 0.0001;
+    private static final double EPSILON = 0.00001;
 
     public Quantity(double value, U unit) {
         if (unit == null)
@@ -50,22 +50,45 @@ public class Quantity<U extends IMeasurable> {
         return new Quantity<>(round(finalValue), targetUnit);
     }
 
+    public Quantity<U> subtract(Quantity<U> other) {
+        return subtract(other, this.unit);
+    }
+
+    public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
+        validateOperation(other);
+
+        double baseResult = this.unit.convertToBaseUnit(this.value) - other.unit.convertToBaseUnit(other.value);
+
+        double finalValue = targetUnit.convertFromBaseUnit(baseResult);
+        return new Quantity<>(round(finalValue), targetUnit);
+    }
+
+    public double divide(Quantity<U> other) {
+        validateOperation(other);
+
+        double divisorBase = other.unit.convertToBaseUnit(other.value);
+        if (Math.abs(divisorBase) < EPSILON)
+            throw new ArithmeticException("Division by zero");
+
+        double dividendBase = this.unit.convertToBaseUnit(this.value);
+        return round(dividendBase / divisorBase);
+    }
+
    
     @Override
     public boolean equals(Object obj) {
+
         if (this == obj) return true;
-        if (!(obj instanceof Quantity)) return false;
+        if (obj == null) return false;
+        if (!(obj instanceof Quantity<?>)) return false;
 
         Quantity<?> other = (Quantity<?>) obj;
 
-        if (!this.unit.getClass().equals(other.unit.getClass())) return false;
+        double thisBase = this.unit.convertToBaseUnit(this.value);
+        double otherBase = other.unit.convertToBaseUnit(other.value);
 
-        double base1 = this.unit.convertToBaseUnit(this.value);
-        double base2 = other.unit.convertToBaseUnit(other.value);
-
-        return Math.abs(base1 - base2) < EPSILON;
+        return Math.abs(thisBase - otherBase) < EPSILON;
     }
-
     @Override
     public int hashCode() {
         return Objects.hash(unit.getClass(), unit.convertToBaseUnit(value));
@@ -80,7 +103,7 @@ public class Quantity<U extends IMeasurable> {
     }
 
     private double round(double value) {
-        return Math.round(value * 100.0) / 100.0;
+        return Math.round(value * 100000.0) / 100000.0;
     }
     @Override
     public String toString() {
