@@ -38,7 +38,5 @@ public enum LengthUnit implements IMeasurable {
 
         double yards = LengthUnit.YARDS.convertFromBaseUnit(inches);
         System.out.println(inches + " INCHES = " + yards + " YARDS");
-    }
-
-	
+    }	
 }
