@@ -9,8 +9,12 @@ public interface IMeasurable {
     double convertFromBaseUnit(double baseValue);
     
     public String getUnitName();
+    
+    SupportsArithmetic supportsArithmetic = () -> true;
 
-    public static void main(String[] args) {
-        System.out.println("IMeasurable Interface");
-    }
+	default boolean supportsArithmetic() {
+		return supportsArithmetic.isSupported();
+	}
+	default void validateOperationSupport(String operation) {
+	}
 }

@@ -1,3 +1,4 @@
+
 package com.apps.quantitymeasurement;
 
 public class QuantityMeasurementApp {
@@ -94,6 +95,24 @@ public class QuantityMeasurementApp {
 		double lengthDivision = demonstrateDivision(lSub1, lSub2);
 		System.out.println("Length Division Result: " + lengthDivision);
 
+		try {
+			new Quantity<>(10.0, LengthUnit.FEET).add(null);
+		} catch (Exception e) {
+			System.out.println(e.getClass().getSimpleName() + ": " + e.getMessage());
+		}
+
+		try {
+			new Quantity<>(10.0, LengthUnit.FEET).subtract(new Quantity<>(5.0, WeightUnit.KILOGRAM));
+		} catch (Exception e) {
+			System.out.println(e.getClass().getSimpleName() + ": " + e.getMessage());
+		}
+
+		try {
+			new Quantity<>(10.0, LengthUnit.FEET).divide(new Quantity<>(0.0, LengthUnit.FEET));
+		} catch (Exception e) {
+			System.out.println(e.getClass().getSimpleName() + ": " + e.getMessage());
+		}
+
 		Quantity<WeightUnit> weightInGrams = new Quantity<>(1000.0, WeightUnit.GRAM);
 		Quantity<WeightUnit> weightInKilograms = new Quantity<>(1.0, WeightUnit.KILOGRAM);
 		boolean areEqual = demonstrateEquality(weightInGrams, weightInKilograms);
@@ -152,5 +171,65 @@ public class QuantityMeasurementApp {
 
 		double volumeDivision = demonstrateDivision(vSub1, vSub2);
 		System.out.println("Volume Division Result: " + volumeDivision);
+
+		// Temperature Check
+		// Temperature Equality
+
+		Quantity<TemperatureUnit> t1 = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
+		Quantity<TemperatureUnit> t2 = new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT);
+		boolean tempEqual1 = demonstrateEquality(t1, t2);
+		System.out.println("Celsius vs Fahrenheit Equal? " + tempEqual1);
+
+		Quantity<TemperatureUnit> t3 = new Quantity<>(273.15, TemperatureUnit.KELVIN);
+		boolean tempEqual2 = demonstrateEquality(t3, new Quantity<>(0.0, TemperatureUnit.CELSIUS));
+		System.out.println("Kelvin vs Celsius Equal? " + tempEqual2);
+
+		Quantity<TemperatureUnit> t4 = new Quantity<>(212.0, TemperatureUnit.FAHRENHEIT);
+		boolean tempEqual3 = demonstrateEquality(t4, new Quantity<>(100.0, TemperatureUnit.CELSIUS));
+		System.out.println("Boiling Point Equal? " + tempEqual3);
+
+		boolean tempEqual4 = demonstrateEquality(new Quantity<>(50.0, TemperatureUnit.CELSIUS),
+				new Quantity<>(122.0, TemperatureUnit.FAHRENHEIT));
+		System.out.println("50C == 122F ? " + tempEqual4);
+		
+
+		// Unsupported Operations
+		
+		try {
+		    new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+		            .add(new Quantity<>(50.0, TemperatureUnit.CELSIUS));
+		} catch (UnsupportedOperationException e) {
+		    System.out.println(e.getMessage());
+		}
+
+		try {
+		    new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+		            .subtract(new Quantity<>(50.0, TemperatureUnit.CELSIUS));
+		} catch (UnsupportedOperationException e) {
+		    System.out.println(e.getMessage());
+		}
+
+		try {
+		    new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+		            .divide(new Quantity<>(50.0, TemperatureUnit.CELSIUS));
+		} catch (UnsupportedOperationException e) {
+		    System.out.println(e.getMessage());
+		}
+		
+		
+		// Cross Category
+
+		boolean tempVsLength =
+		        new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+		                .equals(new Quantity<>(100.0, LengthUnit.FEET));
+
+		System.out.println("Temperature vs Length Equal? " + tempVsLength);
+
+
+		boolean tempVsWeight =
+		        new Quantity<>(50.0, TemperatureUnit.CELSIUS)
+		                .equals(new Quantity<>(50.0, WeightUnit.KILOGRAM));
+
+		System.out.println("Temperature vs Weight Equal? " + tempVsWeight);
 	}
 }

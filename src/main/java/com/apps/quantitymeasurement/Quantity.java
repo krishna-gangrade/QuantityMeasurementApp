@@ -1,3 +1,4 @@
+
 package com.apps.quantitymeasurement;
 
 import java.util.function.DoubleBinaryOperator;
@@ -52,19 +53,21 @@ public final class Quantity<U extends IMeasurable> {
 	}
 
 	@Override
-    public boolean equals(Object obj) {
+	public boolean equals(Object obj) {
+	    if (this == obj) return true;
+	    if (!(obj instanceof Quantity)) return false;
 
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (!(obj instanceof Quantity<?>)) return false;
+	    Quantity<?> other = (Quantity<?>) obj;
 
-        Quantity<?> other = (Quantity<?>) obj;
+	    // VERY IMPORTANT: check category BEFORE conversion
+	    if (!this.unit.getClass().equals(other.unit.getClass()))
+	        return false;
 
-        double thisBase = this.unit.convertToBaseUnit(this.value);
-        double otherBase = other.unit.convertToBaseUnit(other.value);
+	    double base1 = this.unit.convertToBaseUnit(this.value);
+	    double base2 = other.unit.convertToBaseUnit(other.value);
 
-        return Math.abs(thisBase - otherBase) < EPSILON;
-    }
+	    return Math.abs(base1 - base2) < EPSILON;
+	}
 
 	public Quantity<U> convertTo(U targetUnit) {
 		if (targetUnit == null) {
@@ -100,9 +103,21 @@ public final class Quantity<U extends IMeasurable> {
 	}
 
 	private double performArithmetic(Quantity<? extends IMeasurable> other, ArithmeticOperation operation) {
-		double baseThis = this.unit.convertToBaseUnit(this.value);
-		double baseOther = other.getUnit().convertToBaseUnit(other.getValue());
-		return operation.compute(baseThis, baseOther);
+        // Validate operation support on both units before any conversion
+        this.unit.validateOperationSupport(operation.name());
+        other.getUnit().validateOperationSupport(operation.name());
+
+        // For division, require both units to explicitly support arithmetic
+        if (operation == ArithmeticOperation.DIVIDE) {
+            if (!this.unit.supportsArithmetic() || !other.getUnit().supportsArithmetic()) {
+                throw new UnsupportedOperationException(
+                        "Division not supported for unit type: " + this.unit.getClass().getSimpleName());
+            }
+        }
+
+        double baseThis = this.unit.convertToBaseUnit(this.value);
+        double baseOther = other.getUnit().convertToBaseUnit(other.getValue());
+        return operation.compute(baseThis, baseOther);
 	}
 
 	public Quantity<U> add(Quantity<? extends IMeasurable> other) {
@@ -114,33 +129,42 @@ public final class Quantity<U extends IMeasurable> {
 	}
 
 	public Quantity<U> add(Quantity<? extends IMeasurable> other, U targetUnit) {
-		validateArithmeticOperands(other, targetUnit, true);
-		double baseResult = performArithmetic(other, ArithmeticOperation.ADD);
-		double resultInTarget = targetUnit.convertFromBaseUnit(baseResult);
-		double rounded = Math.round(resultInTarget * ROUND_SCALE) / ROUND_SCALE;
-		return new Quantity<>(rounded, targetUnit);
-	}
+        validateArithmeticOperands(other, targetUnit, true);
+        // validate target unit supports the operation
+        targetUnit.validateOperationSupport(ArithmeticOperation.ADD.name());
+
+        double baseResult = performArithmetic(other, ArithmeticOperation.ADD);
+        double resultInTarget = targetUnit.convertFromBaseUnit(baseResult);
+        double rounded = Math.round(resultInTarget * ROUND_SCALE) / ROUND_SCALE;
+        return new Quantity<>(rounded, targetUnit);
+    }
 
 	public Quantity<U> subtract(Quantity<? extends IMeasurable> other) {
-		validateArithmeticOperands(other, this.unit, false);
-		double baseResult = performArithmetic(other, ArithmeticOperation.SUBTRACT);
-		double resultInThisUnit = this.unit.convertFromBaseUnit(baseResult);
-		double rounded = Math.round(resultInThisUnit * ROUND_SCALE) / ROUND_SCALE;
-		return new Quantity<>(rounded, this.unit);
+	    validateArithmeticOperands(other, this.unit, false);
+
+	    this.unit.validateOperationSupport(ArithmeticOperation.SUBTRACT.name());
+
+	    double baseResult = performArithmetic(other, ArithmeticOperation.SUBTRACT);
+	    double resultInThisUnit = this.unit.convertFromBaseUnit(baseResult);
+	    double rounded = Math.round(resultInThisUnit * ROUND_SCALE) / ROUND_SCALE;
+	    return new Quantity<>(rounded, this.unit);
 	}
 
 	public Quantity<U> subtract(Quantity<? extends IMeasurable> other, U targetUnit) {
-		validateArithmeticOperands(other, targetUnit, true);
-		double baseResult = performArithmetic(other, ArithmeticOperation.SUBTRACT);
-		double resultInTarget = targetUnit.convertFromBaseUnit(baseResult);
-		double rounded = Math.round(resultInTarget * ROUND_SCALE) / ROUND_SCALE;
-		return new Quantity<>(rounded, targetUnit);
-	}
+        validateArithmeticOperands(other, targetUnit, true);
+        targetUnit.validateOperationSupport(ArithmeticOperation.SUBTRACT.name());
+
+        double baseResult = performArithmetic(other, ArithmeticOperation.SUBTRACT);
+        double resultInTarget = targetUnit.convertFromBaseUnit(baseResult);
+        double rounded = Math.round(resultInTarget * ROUND_SCALE) / ROUND_SCALE;
+        return new Quantity<>(rounded, targetUnit);
+    }
 
 	public double divide(Quantity<? extends IMeasurable> other) {
-		validateArithmeticOperands(other, null, false);
-		return performArithmetic(other, ArithmeticOperation.DIVIDE);
-	}
+        validateArithmeticOperands(other, null, false);
+        // performArithmetic will validate operation support and check division support
+        return performArithmetic(other, ArithmeticOperation.DIVIDE);
+    }
 
 	@Override
 	public int hashCode() {
