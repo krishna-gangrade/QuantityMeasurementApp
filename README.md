@@ -315,6 +315,6 @@
 - Results rounded to two decimal places (subtraction only)
 
 🔗 **Code Link:**  
-[UC12: Subtraction and Division Operations on Quantity Measurements](https://github.com/Prashant-kumar-sharma/QuantityMeasurementApp/tree/feature/UC12-SubtractionDivision)
+[UC12: Subtraction and Division Operations on Quantity Measurements](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC11-VolumeEquality)
 
 ---
