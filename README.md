@@ -316,5 +316,65 @@
 🔗 **Code Link:**  
 [UC13: Centralized Arithmetic Logic to Enforce DRY in Quantity Operations](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC13-ArithematicOperation)
 
+---
+
+# Quantity Measurement App - UC12 (Subtraction and Division Operations on Quantity Measurements)
+
+### 📌 Overview
+
+- UC12 extends the Quantity Measurement Application by `adding subtraction` and `division operations` to the `generic Quantity<U> model`.
+- It builds on `UC1–UC11` and enables full arithmetic manipulation while preserving immutability, type safety, and cross-unit support.
+
+### ⚙️ Use Case: UC12 – Quantity Subtraction & Division
+
+- Subtract two quantities of the same measurement category
+- Divide two quantities to obtain a dimensionless ratio
+- Support `cross-unit` arithmetic (e.g., feet ↔ inches, litre ↔ millilitre)
+- Prevent `cross-category` operations (e.g., length vs weight)
+
+### ⚙️Key Implementation Points
+
+ - Convert operands to base unit before arithmetic
+- Validate:
+    - Null operands
+    - Same measurement category
+    - Finite numeric values
+    - Division by zero
+- Implicit target unit → first operand’s unit
+- Explicit target unit supported
+- Results rounded to two decimal places (subtraction only)
+
+🔗 **Code Link:**  
+[UC12: Subtraction and Division Operations on Quantity Measurements](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC12-SubtractionDivision)
+
+---
+
+# Quantity Measurement App - UC13 (Centralised Arithmetic Logic to Enforce DRY in Quantity Operations)
+
+### 📌 Overview
+
+- UC13 refactors the arithmetic operations introduced in UC12 by centralising all shared validation, unit conversion, and base-unit arithmetic logic into private helper methods.
+- This refactoring enforces the DRY (Don’t Repeat Yourself) principle, reduces code duplication, and improves maintainability, while keeping all public APIs and behaviours unchanged.
+
+### ⚙️ Use Case: UC13 Centralised Arithmetic Logic
+
+- Eliminate repeated logic across the add, subtract, and divide methods
+- Ensure consistent validation and error handling for all arithmetic operations
+- Improve readability and maintainability of arithmetic logic
+- Provide a scalable foundation for future operations (multiply, modulo, etc.)
+- Preserve all UC12 behaviour and existing test cases
+
+### ⚙️ Key Implementation Points (Brief)
+
+- Centralised validation logic in one private helper method.
+- Single helper for base-unit conversion and arithmetic.
+- `ArithmeticOperation` enum (ADD, SUBTRACT, DIVIDE) encapsulates operation logic.
+- `add`, `subtract`, `divide` delegate to shared helpers.
+- Implicit and explicit target unit behaviour preserved.
+- Public APIs unchanged; UC12 tests pass as-is.
+- DRY enforced, cleaner code, easier future extension.
+
+🔗 **Code Link:**  
+[UC13: Centralized Arithmetic Logic to Enforce DRY in Quantity Operations](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC13-ArithematicOperation)
 
 ---
