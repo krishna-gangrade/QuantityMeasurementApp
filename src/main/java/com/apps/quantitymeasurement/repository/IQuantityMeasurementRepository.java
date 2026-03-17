@@ -1,19 +1,29 @@
+
 package com.apps.quantitymeasurement.repository;
 
-import java.util.List;
 import com.apps.quantitymeasurement.entity.QuantityMeasurementEntity;
+
+import java.util.List;
 
 public interface IQuantityMeasurementRepository {
 
-    /**
-     * Save a measurement entity
-     */
     void save(QuantityMeasurementEntity entity);
 
-    /**
-     * Retrieve all measurements
-     */
     List<QuantityMeasurementEntity> getAllMeasurements();
-    
-    
+
+    List<QuantityMeasurementEntity> getMeasurementsByOperation(String operation);
+
+    List<QuantityMeasurementEntity> getMeasurementsByType(String measurementType);
+
+    int getTotalCount();
+
+    void deleteAll();
+
+    default String getPoolStatistics() {
+        return "Pool statistics not available.";
+    }
+
+    default void releaseResources() {
+        // optional override
+    }
 }

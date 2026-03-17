@@ -1,3 +1,4 @@
+
 package com.apps.quantitymeasurement.unit;
 
 import java.util.function.Function;
@@ -6,30 +7,24 @@ public enum TemperatureUnit implements IMeasurable {
 
     CELSIUS(
             v -> v,
-            v -> v,
-            () -> false
+            v -> v
     ),
     FAHRENHEIT(
             v -> (v - 32.0) * 5.0 / 9.0,
-            v -> v * 9.0 / 5.0 + 32.0,
-            () -> false
+            v -> v * 9.0 / 5.0 + 32.0
     ),
     KELVIN(
             v -> v - 273.15,
-            v -> v + 273.15,
-            () -> false
+            v -> v + 273.15
     );
 
     private final Function<Double, Double> toBase;
     private final Function<Double, Double> fromBase;
-    private final SupportsArithmetic supports;
 
     TemperatureUnit(Function<Double, Double> toBase,
-                    Function<Double, Double> fromBase,
-                    SupportsArithmetic supports) {
+                    Function<Double, Double> fromBase) {
         this.toBase = toBase;
         this.fromBase = fromBase;
-        this.supports = supports;
     }
 
     @Override
@@ -54,18 +49,23 @@ public enum TemperatureUnit implements IMeasurable {
 
     @Override
     public boolean supportsArithmetic() {
-        return supports.isSupported();
+        return false;   // temperature cannot be added/subtracted/divided
     }
 
     @Override
     public void validateOperationSupport(String operation) {
         throw new UnsupportedOperationException(
-                this.name() + " does not support " + operation + " operations."
+                getMeasurementType() + " does not support " + operation + " operations."
         );
     }
 
     @Override
     public IMeasurable getUnitInstance(String name) {
         return TemperatureUnit.valueOf(name.toUpperCase());
+    }
+
+    @Override
+    public String getMeasurementType() {
+        return "TEMPERATURE";
     }
 }

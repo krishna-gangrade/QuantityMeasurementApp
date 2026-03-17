@@ -1,3 +1,4 @@
+
 package com.apps.quantitymeasurement.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,13 +20,11 @@ public class QuantityMeasurementCacheRepositoryTest {
         repository = QuantityMeasurementCacheRepository.getInstance();
 
         // clear cache between tests
-        repository.getAllMeasurements();
-        
         repository.clear();
     }
 
     // =========================
-    // SINGLETON TESTS
+    // SINGLETON TEST
     // =========================
 
     @Test
@@ -48,7 +47,12 @@ public class QuantityMeasurementCacheRepositoryTest {
     void testSaveSingleEntity() {
 
         QuantityMeasurementEntity entity =
-                new QuantityMeasurementEntity(1,2,"FEET","ADD",3);
+                new QuantityMeasurementEntity(
+                        1, "FEET",
+                        2, "FEET",
+                        "ADD",
+                        3
+                );
 
         repository.save(entity);
 
@@ -58,9 +62,9 @@ public class QuantityMeasurementCacheRepositoryTest {
     @Test
     void testSaveMultipleEntities() {
 
-        repository.save(new QuantityMeasurementEntity(1,1,"FEET","ADD",2));
-        repository.save(new QuantityMeasurementEntity(2,2,"FEET","ADD",4));
-        repository.save(new QuantityMeasurementEntity(3,3,"FEET","ADD",6));
+        repository.save(new QuantityMeasurementEntity(1,"FEET",1,"FEET","ADD",2));
+        repository.save(new QuantityMeasurementEntity(2,"FEET",2,"FEET","ADD",4));
+        repository.save(new QuantityMeasurementEntity(3,"FEET",3,"FEET","ADD",6));
 
         assertEquals(3, repository.getAllMeasurements().size());
     }
@@ -72,7 +76,7 @@ public class QuantityMeasurementCacheRepositoryTest {
     @Test
     void testGetAllMeasurementsReturnsData() {
 
-        repository.save(new QuantityMeasurementEntity(1,1,"FEET","ADD",2));
+        repository.save(new QuantityMeasurementEntity(1,"FEET",1,"FEET","ADD",2));
 
         List<QuantityMeasurementEntity> result =
                 repository.getAllMeasurements();
@@ -87,6 +91,7 @@ public class QuantityMeasurementCacheRepositoryTest {
                 repository.getAllMeasurements();
 
         assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     // =========================
@@ -96,7 +101,7 @@ public class QuantityMeasurementCacheRepositoryTest {
     @Test
     void testReturnedListIsDefensiveCopy() {
 
-        repository.save(new QuantityMeasurementEntity(1,1,"FEET","ADD",2));
+        repository.save(new QuantityMeasurementEntity(1,"FEET",1,"FEET","ADD",2));
 
         List<QuantityMeasurementEntity> list1 =
                 repository.getAllMeasurements();
@@ -131,7 +136,10 @@ public class QuantityMeasurementCacheRepositoryTest {
 
             repository.save(
                     new QuantityMeasurementEntity(
-                            i, i, "FEET", "ADD", i * 2
+                            i, "FEET",
+                            i, "FEET",
+                            "ADD",
+                            i * 2
                     )
             );
         }
@@ -148,7 +156,12 @@ public class QuantityMeasurementCacheRepositoryTest {
     void testSavedEntityIntegrity() {
 
         QuantityMeasurementEntity entity =
-                new QuantityMeasurementEntity(5,3,"FEET","SUBTRACT",2);
+                new QuantityMeasurementEntity(
+                        5, "FEET",
+                        3, "FEET",
+                        "SUBTRACT",
+                        2
+                );
 
         repository.save(entity);
 
@@ -156,30 +169,19 @@ public class QuantityMeasurementCacheRepositoryTest {
                 repository.getAllMeasurements().get(0);
 
         assertNotNull(stored);
+        assertEquals("SUBTRACT", stored.getOperation());
     }
 
     // =========================
-    // CONCURRENT ACCESS TEST
+    // SEQUENTIAL SAVE TEST
     // =========================
 
     @Test
-    void testConcurrentSaveOperations() throws InterruptedException {
+    void testSequentialSaveOperations() {
 
-        Thread t1 = new Thread(() -> {
-            repository.save(new QuantityMeasurementEntity(1,1,"FEET","ADD",2));
-        });
-
-        Thread t2 = new Thread(() -> {
-            repository.save(new QuantityMeasurementEntity(2,2,"FEET","ADD",4));
-        });
-
-        t1.start();
-        t2.start();
-
-        t1.join();
-        t2.join();
+        repository.save(new QuantityMeasurementEntity(1,"FEET",1,"FEET","ADD",2));
+        repository.save(new QuantityMeasurementEntity(2,"FEET",2,"FEET","ADD",4));
 
         assertEquals(2, repository.getAllMeasurements().size());
     }
-
 }

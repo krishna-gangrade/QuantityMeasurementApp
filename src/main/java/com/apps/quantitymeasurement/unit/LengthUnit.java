@@ -5,7 +5,7 @@ public enum LengthUnit implements IMeasurable {
     FEET(12.0),
     INCHES(1.0),
     YARDS(36.0),
-    CENTIMETERS(1 / 2.54);
+    CENTIMETERS(1.0 / 2.54);
 
     private final double conversionFactor;
 
@@ -38,5 +38,24 @@ public enum LengthUnit implements IMeasurable {
     @Override
     public IMeasurable getUnitInstance(String name) {
         return LengthUnit.valueOf(name.toUpperCase());
+    }
+
+    /* ================= ARITHMETIC SUPPORT ================= */
+
+    @Override
+    public boolean supportsArithmetic() {
+        return true;   // Length supports arithmetic
+    }
+
+    @Override
+    public void validateOperationSupport(String operation) {
+        // All operations allowed for length
+    }
+
+    /* ================= MEASUREMENT TYPE ================= */
+
+    @Override
+    public String getMeasurementType() {
+        return "LENGTH";
     }
 }

@@ -1,3 +1,4 @@
+
 package com.apps.quantitymeasurement.entity;
 
 import com.apps.quantitymeasurement.unit.IMeasurable;

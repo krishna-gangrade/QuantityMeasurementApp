@@ -40,4 +40,23 @@ public enum WeightUnit implements IMeasurable {
     public IMeasurable getUnitInstance(String name) {
         return WeightUnit.valueOf(name.toUpperCase());
     }
+
+    /* ================= ARITHMETIC SUPPORT ================= */
+
+    @Override
+    public boolean supportsArithmetic() {
+        return true;   // Weight supports add/subtract/divide
+    }
+
+    @Override
+    public void validateOperationSupport(String operation) {
+        // All arithmetic operations allowed for weight
+    }
+
+    /* ================= MEASUREMENT TYPE ================= */
+
+    @Override
+    public String getMeasurementType() {
+        return "WEIGHT";
+    }
 }

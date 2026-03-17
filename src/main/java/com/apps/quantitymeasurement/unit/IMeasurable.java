@@ -11,23 +11,11 @@ public interface IMeasurable {
 
     String getUnitName();
 
-    SupportsArithmetic supportsArithmetic = () -> true;
+    boolean supportsArithmetic();
 
-    default boolean supportsArithmetic() {
-        return supportsArithmetic.isSupported();
-    }
+    void validateOperationSupport(String operation);
 
-    default void validateOperationSupport(String operation) {
-        // default allows operation
-    }
+    String getMeasurementType();   // force enums to implement this
 
-    // Default measurement type = enum name
-    default String getMeasurementType() {
-        return this.getClass().getSimpleName();
-    }
-
-    // Default implementation (can be overridden if needed)
-    default IMeasurable getUnitInstance(String name) {
-        throw new UnsupportedOperationException("Unit lookup not implemented");
-    }
+    IMeasurable getUnitInstance(String name);
 }

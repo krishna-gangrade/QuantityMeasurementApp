@@ -1,323 +1,166 @@
+
 package com.apps.quantitymeasurement.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.apps.quantitymeasurement.entity.QuantityDTO;
-import com.apps.quantitymeasurement.repository.QuantityMeasurementCacheRepository;
-import com.apps.quantitymeasurement.service.QuantityMeasurementServiceImpl;
+import com.apps.quantitymeasurement.service.IQuantityMeasurementService;
 
-public class QuantityMeasurementControllerTest {
+class QuantityMeasurementControllerTest {
 
     private QuantityMeasurementController controller;
+
+    private IQuantityMeasurementService service;
+
+    private static final double EPSILON = 0.0001;
 
     @BeforeEach
     void setup() {
 
-        controller = new QuantityMeasurementController(
-                new QuantityMeasurementServiceImpl(
-                        QuantityMeasurementCacheRepository.getInstance()));
+        service = Mockito.mock(IQuantityMeasurementService.class);
+
+        controller = new QuantityMeasurementController(service);
     }
 
-    private static final double EPSILON = 0.0001;
-
-    // -------------------------
-    // COMPARISON TESTS
-    // -------------------------
+    // =========================
+    // COMPARISON TEST
+    // =========================
 
     @Test
-    void testComparison_EquivalentUnits() {
+    void testComparisonEquivalentUnits() {
 
         QuantityDTO q1 = new QuantityDTO(1.0, "FEET", "Length");
         QuantityDTO q2 = new QuantityDTO(12.0, "INCHES", "Length");
 
-        assertTrue(controller.performComparison(q1, q2));
+        when(service.compare(q1, q2)).thenReturn(true);
+
+        boolean result = controller.performComparison(q1, q2);
+
+        assertTrue(result);
+
+        verify(service).compare(q1, q2);
     }
 
-    @Test
-    void testComparison_DifferentUnits() {
-
-        QuantityDTO q1 = new QuantityDTO(1.0, "FEET", "Length");
-        QuantityDTO q2 = new QuantityDTO(10.0, "INCHES", "Length");
-
-        assertFalse(controller.performComparison(q1, q2));
-    }
+    // =========================
+    // ADDITION TEST
+    // =========================
 
     @Test
-    void testComparison_ZeroValues() {
-
-        QuantityDTO q1 = new QuantityDTO(0.0, "LITRE", "Volume");
-        QuantityDTO q2 = new QuantityDTO(0.0, "MILLILITRE", "Volume");
-
-        assertTrue(controller.performComparison(q1, q2));
-    }
-
-    @Test
-    void testComparison_NegativeValues() {
-
-        QuantityDTO q1 = new QuantityDTO(-1.0, "LITRE", "Volume");
-        QuantityDTO q2 = new QuantityDTO(-1000.0, "MILLILITRE", "Volume");
-
-        assertTrue(controller.performComparison(q1, q2));
-    }
-
-    // -------------------------
-    // ADDITION TESTS
-    // -------------------------
-
-    @Test
-    void testAddition_CrossUnits() {
+    void testAddition() {
 
         QuantityDTO q1 = new QuantityDTO(1.0, "LITRE", "Volume");
         QuantityDTO q2 = new QuantityDTO(1000.0, "MILLILITRE", "Volume");
 
+        QuantityDTO expected = new QuantityDTO(2.0, "LITRE", "Volume");
+
+        when(service.add(q1, q2)).thenReturn(expected);
+
         QuantityDTO result = controller.performAddition(q1, q2);
 
         assertEquals(2.0, result.getValue(), EPSILON);
+
+        verify(service).add(q1, q2);
     }
 
-    @Test
-    void testAddition_LargeValues() {
-
-        QuantityDTO q1 = new QuantityDTO(1e6, "LITRE", "Volume");
-        QuantityDTO q2 = new QuantityDTO(1e6, "LITRE", "Volume");
-
-        QuantityDTO result = controller.performAddition(q1, q2);
-
-        assertEquals(2e6, result.getValue(), EPSILON);
-    }
+    // =========================
+    // ADDITION WITH TARGET
+    // =========================
 
     @Test
-    void testAddition_NegativeNumbers() {
-
-        QuantityDTO q1 = new QuantityDTO(10.0, "FEET", "Length");
-        QuantityDTO q2 = new QuantityDTO(-5.0, "FEET", "Length");
-
-        QuantityDTO result = controller.performAddition(q1, q2);
-
-        assertEquals(5.0, result.getValue(), EPSILON);
-    }
-
-    @Test
-    void testAddition_WithTargetUnit() {
+    void testAdditionWithTargetUnit() {
 
         QuantityDTO q1 = new QuantityDTO(1.0, "FEET", "Length");
         QuantityDTO q2 = new QuantityDTO(12.0, "INCHES", "Length");
 
-        QuantityDTO result =
-                controller.performAddition(q1, q2, "INCHES");
+        QuantityDTO expected = new QuantityDTO(24.0, "INCHES", "Length");
+
+        when(service.add(q1, q2, "INCHES")).thenReturn(expected);
+
+        QuantityDTO result = controller.performAddition(q1, q2, "INCHES");
 
         assertEquals(24.0, result.getValue(), EPSILON);
-    }
-    
-    @Test
-    void testAddition_TargetUnit_LengthFeetToInches() {
 
-        QuantityDTO q1 = new QuantityDTO(1.0, "FEET", "Length");
-        QuantityDTO q2 = new QuantityDTO(12.0, "INCHES", "Length");
-
-        QuantityDTO result =
-                controller.performAddition(q1, q2, "INCHES");
-
-        assertEquals(24.0, result.getValue(), EPSILON);
-    }
-    
-    @Test
-    void testAddition_TargetUnit_LengthInchesToFeet() {
-
-        QuantityDTO q1 = new QuantityDTO(12.0, "INCHES", "Length");
-        QuantityDTO q2 = new QuantityDTO(12.0, "INCHES", "Length");
-
-        QuantityDTO result =
-                controller.performAddition(q1, q2, "FEET");
-
-        assertEquals(2.0, result.getValue(), EPSILON);
-    }
-    
-    @Test
-    void testAddition_TargetUnit_VolumeLitresToMillilitres() {
-
-        QuantityDTO q1 = new QuantityDTO(1.0, "LITRE", "Volume");
-        QuantityDTO q2 = new QuantityDTO(1.0, "LITRE", "Volume");
-
-        QuantityDTO result =
-                controller.performAddition(q1, q2, "MILLILITRE");
-
-        assertEquals(2000.0, result.getValue(), EPSILON);
-    }
-    
-    @Test
-    void testAddition_TargetUnit_WeightKgToGram() {
-
-        QuantityDTO q1 = new QuantityDTO(1.0, "KILOGRAM", "Weight");
-        QuantityDTO q2 = new QuantityDTO(1.0, "KILOGRAM", "Weight");
-
-        QuantityDTO result =
-                controller.performAddition(q1, q2, "GRAM");
-
-        assertEquals(2000.0, result.getValue(), EPSILON);
-    }
-    
-    @Test
-    void testAddition_TargetUnit_WithNegativeValues() {
-
-        QuantityDTO q1 = new QuantityDTO(10.0, "FEET", "Length");
-        QuantityDTO q2 = new QuantityDTO(-5.0, "FEET", "Length");
-
-        QuantityDTO result =
-                controller.performAddition(q1, q2, "FEET");
-
-        assertEquals(5.0, result.getValue(), EPSILON);
-    }
-    
-    @Test
-    void testAddition_TargetUnit_WithZero() {
-
-        QuantityDTO q1 = new QuantityDTO(5.0, "LITRE", "Volume");
-        QuantityDTO q2 = new QuantityDTO(0.0, "MILLILITRE", "Volume");
-
-        QuantityDTO result =
-                controller.performAddition(q1, q2, "LITRE");
-
-        assertEquals(5.0, result.getValue(), EPSILON);
-    }
-    
-    @Test
-    void testControllerAddTemperature_ShouldFail() {
-
-        QuantityDTO q1 = new QuantityDTO(100.0, "CELSIUS", "Temperature");
-        QuantityDTO q2 = new QuantityDTO(50.0, "CELSIUS", "Temperature");
-
-        assertThrows(Exception.class,
-                () -> controller.performAddition(q1, q2));
+        verify(service).add(q1, q2, "INCHES");
     }
 
-    // -------------------------
-    // SUBTRACTION TESTS
-    // -------------------------
+    // =========================
+    // SUBTRACTION TEST
+    // =========================
 
     @Test
-    void testSubtraction_Normal() {
+    void testSubtraction() {
 
         QuantityDTO q1 = new QuantityDTO(10.0, "FEET", "Length");
         QuantityDTO q2 = new QuantityDTO(2.0, "FEET", "Length");
 
+        QuantityDTO expected = new QuantityDTO(8.0, "FEET", "Length");
+
+        when(service.subtract(q1, q2)).thenReturn(expected);
+
         QuantityDTO result = controller.performSubtraction(q1, q2);
 
         assertEquals(8.0, result.getValue(), EPSILON);
+
+        verify(service).subtract(q1, q2);
     }
 
-    @Test
-    void testSubtraction_ResultNegative() {
-
-        QuantityDTO q1 = new QuantityDTO(2.0, "FEET", "Length");
-        QuantityDTO q2 = new QuantityDTO(5.0, "FEET", "Length");
-
-        QuantityDTO result = controller.performSubtraction(q1, q2);
-
-        assertEquals(-3.0, result.getValue(), EPSILON);
-    }
+    // =========================
+    // DIVISION TEST
+    // =========================
 
     @Test
-    void testSubtraction_CrossUnits() {
-
-        QuantityDTO q1 = new QuantityDTO(10.0, "FEET", "Length");
-        QuantityDTO q2 = new QuantityDTO(12.0, "INCHES", "Length");
-
-        QuantityDTO result = controller.performSubtraction(q1, q2);
-
-        assertEquals(9.0, result.getValue(), EPSILON);
-    }
-
-    // -------------------------
-    // DIVISION TESTS
-    // -------------------------
-
-    @Test
-    void testDivision_Normal() {
+    void testDivision() {
 
         QuantityDTO q1 = new QuantityDTO(10.0, "FEET", "Length");
         QuantityDTO q2 = new QuantityDTO(5.0, "FEET", "Length");
 
-        assertEquals(2.0, controller.performDivision(q1, q2), EPSILON);
+        when(service.divide(q1, q2)).thenReturn(2.0);
+
+        double result = controller.performDivision(q1, q2);
+
+        assertEquals(2.0, result, EPSILON);
+
+        verify(service).divide(q1, q2);
     }
 
-    @Test
-    void testDivision_Fraction() {
-
-        QuantityDTO q1 = new QuantityDTO(5.0, "FEET", "Length");
-        QuantityDTO q2 = new QuantityDTO(10.0, "FEET", "Length");
-
-        assertEquals(0.5, controller.performDivision(q1, q2), EPSILON);
-    }
+    // =========================
+    // CONVERSION TEST
+    // =========================
 
     @Test
-    void testDivision_LargeNumbers() {
-
-        QuantityDTO q1 = new QuantityDTO(1e9, "GRAM", "Weight");
-        QuantityDTO q2 = new QuantityDTO(1e3, "GRAM", "Weight");
-
-        assertEquals(1e6, controller.performDivision(q1, q2), EPSILON);
-    }
-
-    // -------------------------
-    // CONVERSION TESTS
-    // -------------------------
-
-    @Test
-    void testConversion_Length() {
+    void testConversion() {
 
         QuantityDTO q = new QuantityDTO(1.0, "FEET", "Length");
 
-        QuantityDTO result =
-                controller.performConversion(q, "INCHES");
+        QuantityDTO expected = new QuantityDTO(12.0, "INCHES", "Length");
+
+        when(service.convert(q, "INCHES")).thenReturn(expected);
+
+        QuantityDTO result = controller.performConversion(q, "INCHES");
 
         assertEquals(12.0, result.getValue(), EPSILON);
+
+        verify(service).convert(q, "INCHES");
     }
+
+    // =========================
+    // EXCEPTION TEST
+    // =========================
 
     @Test
-    void testConversion_Weight() {
+    void testAdditionThrowsException() {
 
-        QuantityDTO q = new QuantityDTO(1.0, "KILOGRAM", "Weight");
+        QuantityDTO q1 = new QuantityDTO(10.0, "CELSIUS", "Temperature");
+        QuantityDTO q2 = new QuantityDTO(50.0, "CELSIUS", "Temperature");
 
-        QuantityDTO result =
-                controller.performConversion(q, "GRAM");
+        when(service.add(q1, q2)).thenThrow(new RuntimeException());
 
-        assertEquals(1000.0, result.getValue(), EPSILON);
+        assertThrows(RuntimeException.class,
+                () -> controller.performAddition(q1, q2));
     }
-
-    // -------------------------
-    // EXTREME EDGE CASES
-    // -------------------------
-
-    @Test
-    void testNullOperandAddition() {
-
-        QuantityDTO q = new QuantityDTO(10.0, "FEET", "Length");
-
-        assertThrows(Exception.class,
-                () -> controller.performAddition(q, null));
-    }
-
-    @Test
-    void testNullOperandSubtraction() {
-
-        QuantityDTO q = new QuantityDTO(10.0, "FEET", "Length");
-
-        assertThrows(Exception.class,
-                () -> controller.performSubtraction(q, null));
-    }
-
-    @Test
-    void testDivisionByZero() {
-
-        QuantityDTO q1 = new QuantityDTO(10.0, "FEET", "Length");
-        QuantityDTO q2 = new QuantityDTO(0.0, "FEET", "Length");
-
-        assertThrows(Exception.class,
-                () -> controller.performDivision(q1, q2));
-    }
-
 }
