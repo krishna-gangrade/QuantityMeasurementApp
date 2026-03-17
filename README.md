@@ -411,6 +411,14 @@
 
 ---
 
+# Quantity Measurement App – UC15 (N-Tier Architecture Refactoring)
+
+### 📌 Overview
+
+- Refactors the Quantity Measurement Application from a **monolithic structure** into a **clean N-Tier architecture**.
+- Separates the system into **Controller, Service, Repository, and Entity layers**.
+- Improves **maintainability, scalability, and testability** while preserving all functionality from **UC1–UC14**.
+
 ### ⚙️ Use Case: UC15 – N-Tier Architecture
 
 - Introduces layered architecture for clear separation of concerns  
