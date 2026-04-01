@@ -585,7 +585,7 @@ H2 Console: http://localhost:8080/h2-console
 ---
 
 🔗 **Code Link:**  
-[UC17: Spring Boot REST & JPA Integration](https://github.com/krishna-gangrade/QuantityMeasurementApp/feature/UC17-Spring-Backend-for-Quantity-Measurement)
+[UC17: Spring Boot REST & JPA Integration](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC17-Spring-Backend-for-Quantity-Measurement)
 
 ---
 
@@ -756,6 +756,6 @@ spring:
 - **Scalable User Management** for enterprise deployment
 
 🔗 _Code Link:_ 
-👉 [UC18 – Google Authentication and User Management](https://github.com/krishna-gangrade/QuantityMeasurementApp/feature/UC18-SpringSecurityJWTGoogleOAuth2)
+👉 [UC18 – Google Authentication and User Management](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC18-SpringSecurityJWTGoogleOAuth2)
 
 ---
