@@ -487,3 +487,132 @@
 [UC16: Database Integration with JDBC](https://github.com/krishna-gangrade/QuantityMeasurementApp/tree/feature/UC16-DatabaseIntegration)
 
 ---
+
+# Quantity Measurement App – UC17 (Spring Boot REST & JPA Integration)
+
+### 📌 Overview
+
+- This module transforms the application into a **Spring Boot-based RESTful service**.
+- It replaces JDBC with **Spring Data JPA** and exposes functionality via **REST APIs**.
+- Enhances scalability, maintainability, and enterprise readiness while preserving all existing business logic.
+
+---
+
+### ⚙️ Use Case: UC17 – Spring Boot REST & JPA Integration
+
+- Converts application into a **Spring Boot application**  
+- Exposes quantity operations via **REST endpoints (GET, POST, PUT, DELETE)**  
+- Replaces JDBC repository with **Spring Data JPA repository**  
+- Enables **JSON/XML-based communication**  
+- Supports validation, exception handling, and API documentation  
+
+---
+
+### ⚙️ Key Implementation Points
+
+- **Spring Boot Integration**
+  - Uses Spring Boot starter parent for auto-configuration  
+  - Embedded Tomcat server (no external server required)  
+
+- **REST Controller Layer**
+  - Uses `@RestController` to expose APIs  
+  - Handles HTTP requests and responses  
+  - Supports JSON/XML content negotiation  
+
+- **Service Layer Enhancement**
+  - Uses `@Service` annotation  
+  - Integrates Spring’s Dependency Injection  
+  - Supports `@Transactional` for transaction management  
+
+- **Spring Data JPA**
+  - Replaces manual JDBC with `JpaRepository`  
+  - Eliminates boilerplate SQL and ResultSet mapping  
+  - Supports derived query methods and `@Query`  
+
+- **Entity Refactoring**
+  - `QuantityMeasurementEntity` updated with JPA annotations:
+    - `@Entity`, `@Table`, `@Id`, `@GeneratedValue`, `@Column`  
+  - Uses Lombok to reduce boilerplate (`@Data`, `@NoArgsConstructor`, etc.)  
+
+- **DTO & Validation**
+  - `QuantityDTO` enhanced with validation annotations:
+    - `@NotNull`, `@NotEmpty`, `@Pattern`, `@AssertTrue`  
+  - Introduces `QuantityMeasurementDTO` for API communication  
+
+- **Exception Handling**
+  - Global exception handling using `@ControllerAdvice`  
+  - Returns proper HTTP status codes and error messages  
+
+- **API Documentation**
+  - Integrated Swagger/OpenAPI for interactive API docs  
+
+- **Testing**
+  - Uses Spring Boot Test framework  
+  - MockMvc for REST endpoint testing  
+  - Supports integration and unit testing  
+
+- **Database Support**
+  - Default: H2 (in-memory database)  
+  - Configurable: MySQL, PostgreSQL  
+  - Schema managed via `schema.sql`  
+
+- **Security (Optional Foundation)**
+  - Spring Security integration ready  
+  - Can support Basic Auth / JWT in future  
+
+- **Monitoring & Actuator**
+  - Spring Boot Actuator for health checks and metrics  
+
+---
+
+### ⚙️ Key Improvements Over UC16
+
+- Eliminates JDBC boilerplate code  
+- Declarative transaction management  
+- Automatic ORM mapping with JPA  
+- Built-in REST API support  
+- Simplified dependency management  
+- Improved testability with Spring Boot Test  
+- Better scalability and microservices readiness  
+- Integrated monitoring and health checks  
+
+---
+
+### ⚙️ Preconditions
+
+- UC1–UC16 fully working with JDBC persistence  
+- Java 11+ installed  
+- Maven configured  
+- Basic knowledge of Spring Boot, REST, and JPA  
+- IDE with Spring support (IntelliJ/Eclipse/VS Code)  
+- API testing tool (Postman/curl)  
+
+---
+
+### ⚙️ How to Run
+
+```
+# Build the project
+mvn clean install
+
+# Run the application
+mvn spring-boot:run
+```
+
+Application runs on: http://localhost:8080  
+H2 Console: http://localhost:8080/h2-console  
+
+---
+
+### ⚙️ Architecture (After UC17)
+
+- **Controller Layer** → REST APIs  
+- **Service Layer** → Business logic  
+- **Repository Layer** → Spring Data JPA  
+- **Model/Entity Layer** → JPA Entities  
+- **DTO Layer** → API request/response objects  
+
+---
+
+🔗 **Code Link:**  
+[UC17: Spring Boot REST & JPA Integration](https://github.com/krishna-gangrade/QuantityMeasurementApp/edit/feature/UC17-Spring-Backend-for-Quantity-Measurement)
