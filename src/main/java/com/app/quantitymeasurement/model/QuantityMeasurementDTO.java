@@ -1,200 +1,113 @@
 package com.app.quantitymeasurement.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * QuantityMeasurementDTO
- *
- * API response DTO that represents the outcome of a single quantity measurement
- * operation. It mirrors the fields of {@link QuantityMeasurementEntity} but is
- * designed for API communication rather than database persistence.
- *
- * <p>Fields are organised into three groups:</p>
- * <ul>
- *   <li><b>Operands</b> — first ({@code this*}) and second ({@code that*}) quantity
- *       values, units, and measurement types.</li>
- *   <li><b>Result</b> — {@code resultString} for comparison operations ("true"/"false"),
- *       or {@code resultValue}/{@code resultUnit}/{@code resultMeasurementType} for
- *       arithmetic and conversion operations.</li>
- *   <li><b>Error</b> — {@code error} flag and {@code errorMessage} when the
- *       operation failed.</li>
- * </ul>
- *
- * <p>Static factory methods handle conversion between entity and DTO:</p>
- * <ul>
- *   <li>{@link #fromEntity(QuantityMeasurementEntity)} — single entity → DTO.</li>
- *   <li>{@link #toEntity()} — this DTO → entity (for persistence).</li>
- *   <li>{@link #fromEntityList(List)} — list of entities → list of DTOs.</li>
- *   <li>{@link #toEntityList(List)} — list of DTOs → list of entities.</li>
- * </ul>
- *
- */
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+/**
+ * Data Transfer Object for quantity measurement results.
+ * This class captures the input values, the operation performed, 
+ * the calculated result, and any error information.
+ */
 public class QuantityMeasurementDTO {
 
-    // -------------------------------------------------------------------------
-    // First operand
-    // -------------------------------------------------------------------------
-
-    /** Numeric value of the first operand. */
-    private Double thisValue;
-
-    /** Unit name of the first operand (e.g., {@code "FEET"}, {@code "KILOGRAM"}). */
+    private double thisValue;
     private String thisUnit;
-
-    /** Measurement category of the first operand (e.g., {@code "LengthUnit"}). */
     private String thisMeasurementType;
 
-    // -------------------------------------------------------------------------
-    // Second operand
-    // -------------------------------------------------------------------------
-
-    /** Numeric value of the second operand. */
-    private Double thatValue;
-
-    /** Unit name of the second operand (e.g., {@code "INCHES"}, {@code "GRAM"}). */
+    private double thatValue;
     private String thatUnit;
-
-    /** Measurement category of the second operand. */
     private String thatMeasurementType;
 
-    // -------------------------------------------------------------------------
-    // Operation
-    // -------------------------------------------------------------------------
-
-    /**
-     * Name of the operation performed — {@code "compare"}, {@code "convert"},
-     * {@code "add"}, {@code "subtract"}, or {@code "divide"}.
-     */
     private String operation;
 
-    // -------------------------------------------------------------------------
-    // Result
-    // -------------------------------------------------------------------------
-
-    /**
-     * String result for {@code compare} operations ({@code "true"} or {@code "false"}).
-     * {@code null} for all other operations.
-     */
     private String resultString;
-
-    /**
-     * Numeric result for arithmetic and conversion operations.
-     * {@code 0.0} for comparison operations.
-     */
-    private Double resultValue;
-
-    /**
-     * Unit of the result quantity (e.g., {@code "FEET"}).
-     * {@code null} for compare and divide operations.
-     */
+    private double resultValue;
     private String resultUnit;
-
-    /**
-     * Measurement category of the result quantity.
-     * {@code null} for compare and divide operations.
-     */
     private String resultMeasurementType;
 
-    // -------------------------------------------------------------------------
-    // Error
-    // -------------------------------------------------------------------------
-
-    /**
-     * Error message when the operation failed; {@code null} on success.
-     */
     private String errorMessage;
 
-    /**
-     * {@code true} when the operation produced an error and was not completed
-     * successfully.
-     */
+    @JsonProperty("error")
     private boolean error;
 
-    // -------------------------------------------------------------------------
-    // Static factory methods
-    // -------------------------------------------------------------------------
-
     /**
-     * Creates a {@code QuantityMeasurementDTO} from a {@link QuantityMeasurementEntity}.
-     *
-     * @param entity the entity to convert; returns {@code null} if {@code entity} is {@code null}
-     * @return the corresponding DTO
+     * Entity → DTO
      */
-    public static QuantityMeasurementDTO fromEntity(QuantityMeasurementEntity entity) {
+    public static QuantityMeasurementDTO from(QuantityMeasurementEntity entity) {
+
         if (entity == null) return null;
-        return QuantityMeasurementDTO.builder()
-            .thisValue(entity.getThisValue())
-            .thisUnit(entity.getThisUnit())
-            .thisMeasurementType(entity.getThisMeasurementType())
-            .thatValue(entity.getThatValue())
-            .thatUnit(entity.getThatUnit())
-            .thatMeasurementType(entity.getThatMeasurementType())
-            .operation(entity.getOperation())
-            .resultString(entity.getResultString())
-            .resultValue(entity.getResultValue() != null ? entity.getResultValue() : 0.0)
-            .resultUnit(entity.getResultUnit())
-            .resultMeasurementType(entity.getResultMeasurementType())
-            .errorMessage(entity.getErrorMessage())
-            .error(entity.isError())
-            .build();
+
+        QuantityMeasurementDTO dto = new QuantityMeasurementDTO();
+
+        dto.setThisValue(entity.getThisValue());
+        dto.setThisUnit(entity.getThisUnit());
+        dto.setThisMeasurementType(entity.getThisMeasurementType());
+
+        dto.setThatValue(entity.getThatValue());
+        dto.setThatUnit(entity.getThatUnit());
+        dto.setThatMeasurementType(entity.getThatMeasurementType());
+
+        dto.setOperation(entity.getOperation());
+
+        dto.setResultString(entity.getResultString());
+        dto.setResultValue(entity.getResultValue());
+        dto.setResultUnit(entity.getResultUnit());
+        dto.setResultMeasurementType(entity.getResultMeasurementType());
+
+        dto.setError(entity.isError()); // correct for boolean
+        dto.setErrorMessage(entity.getErrorMessage());
+
+        return dto;
     }
 
     /**
-     * Converts this DTO to a {@link QuantityMeasurementEntity} suitable for persistence.
-     *
-     * @return the corresponding entity
+     * DTO → Entity
      */
     public QuantityMeasurementEntity toEntity() {
+
         QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
-        entity.setThisValue(this.thisValue);
-        entity.setThisUnit(this.thisUnit);
-        entity.setThisMeasurementType(this.thisMeasurementType);
-        entity.setThatValue(this.thatValue);
-        entity.setThatUnit(this.thatUnit);
-        entity.setThatMeasurementType(this.thatMeasurementType);
-        entity.setOperation(this.operation);
-        entity.setResultString(this.resultString);
-        entity.setResultValue(this.resultValue);
-        entity.setResultUnit(this.resultUnit);
-        entity.setResultMeasurementType(this.resultMeasurementType);
-        entity.setErrorMessage(this.errorMessage);
-        entity.setError(this.error);
+
+        entity.setThisValue(thisValue);
+        entity.setThisUnit(thisUnit);
+        entity.setThisMeasurementType(thisMeasurementType);
+
+        entity.setThatValue(thatValue);
+        entity.setThatUnit(thatUnit);
+        entity.setThatMeasurementType(thatMeasurementType);
+
+        entity.setOperation(operation);
+
+        entity.setResultString(resultString);
+        entity.setResultValue(resultValue);
+        entity.setResultUnit(resultUnit);
+        entity.setResultMeasurementType(resultMeasurementType);
+
+        entity.setError(error); // boolean setter
+        entity.setErrorMessage(errorMessage);
+
         return entity;
     }
 
     /**
-     * Converts a list of entities to a list of DTOs using the Stream API.
-     *
-     * @param entities list of entities; returns an empty list if {@code null}
-     * @return list of corresponding DTOs
+     * List<Entity> → List<DTO>
      */
-    public static List<QuantityMeasurementDTO> fromEntityList(List<QuantityMeasurementEntity> entities) {
-        if (entities == null) return List.of();
+    public static List<QuantityMeasurementDTO> fromList(List<QuantityMeasurementEntity> entities) {
         return entities.stream()
-            .map(QuantityMeasurementDTO::fromEntity)
-            .collect(Collectors.toList());
+                .map(QuantityMeasurementDTO::from)
+                .collect(Collectors.toList());
     }
 
     /**
-     * Converts a list of DTOs to a list of entities using the Stream API.
-     *
-     * @param dtos list of DTOs; returns an empty list if {@code null}
-     * @return list of corresponding entities
+     * List<DTO> → List<Entity>
      */
     public static List<QuantityMeasurementEntity> toEntityList(List<QuantityMeasurementDTO> dtos) {
-        if (dtos == null) return List.of();
         return dtos.stream()
-            .map(QuantityMeasurementDTO::toEntity)
-            .collect(Collectors.toList());
+                .map(QuantityMeasurementDTO::toEntity)
+                .collect(Collectors.toList());
     }
 }

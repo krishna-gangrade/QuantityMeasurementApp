@@ -1,57 +1,36 @@
 package com.app.quantitymeasurement.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-/**
- * QuantityInputDTO
- *
- * Request body DTO that wraps the operands for a quantity measurement operation.
- *
- * <p>All five POST endpoints in {@code QuantityMeasurementController} accept this
- * class as their {@code @RequestBody}. It carries:</p>
- * <ul>
- *   <li>{@code thisQuantityDTO} — the first (or only) operand, required.</li>
- *   <li>{@code thatQuantityDTO} — the second operand, required.</li>
- *   <li>{@code targetUnitDTO}   — optional target unit; when present, the result
- *       is expressed in this unit instead of the first operand's unit.</li>
- * </ul>
- *
- * <p>Example JSON (add with explicit target unit):</p>
- * <pre>
- * {
- *   "thisQuantityDTO": { "value": 2.0, "unit": "FEET",   "measurementType": "LengthUnit" },
- *   "thatQuantityDTO": { "value": 24.0, "unit": "INCHES", "measurementType": "LengthUnit" },
- *   "targetUnitDTO":  { "value": 0.0, "unit": "YARDS",  "measurementType": "LengthUnit" }
- * }
- * </pre>
- *
- * <p>{@code @Valid} on each nested DTO ensures their own Bean Validation constraints
- * are evaluated before the controller delegates to the service.</p>
- *
- */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Schema(example = """
+		{
+
+		"thisQuantityDTO":{ "value": 1.0, "unit": "FEET", "measurementType": "LengthUnit" },
+		"thatQuantityDTO":{ "value": 12.0, "unit": "INCHES", "measurementType": "LengthUnit" },
+		"targetQuantityDTO": { "value": 0.0, "unit": "INCHES", "measurementType": "LengthUnit" }
+		}
+		"""
+)
+/**
+ * Data Transfer Object for quantity measurement operation inputs.
+ * Wraps two quantities for comparison or arithmetic, and an optional 
+ * target quantity/unit for specialized operations.
+ */
 public class QuantityInputDTO {
+	@Valid
+	@NotNull(message = "First quantity cannot be null")
+	private QuantityDTO thisQuantityDTO;
 
-    /** First operand. Required and fully validated. */
-    @NotNull(message = "thisQuantityDTO must not be null")
-    @Valid
-    private QuantityDTO thisQuantityDTO;
+	@Valid
+	@NotNull(message = "Second quantity cannot be null")
+	private QuantityDTO thatQuantityDTO;
 
-    /** Second operand. Required and fully validated. */
-    @NotNull(message = "thatQuantityDTO must not be null")
-    @Valid
-    private QuantityDTO thatQuantityDTO;
-
-    /**
-     * Optional target unit for the operation result.
-     * When omitted, the result uses the unit of {@code thisQuantityDTO}.
-     */
-    @Valid
-    private QuantityDTO targetUnitDTO;
+// Optional field for addition and subtraction operations
+	@Valid
+	@Schema(nullable = true)
+	private QuantityDTO targetQuantityDTO;
 }

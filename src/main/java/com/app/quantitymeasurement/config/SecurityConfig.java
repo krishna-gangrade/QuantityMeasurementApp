@@ -4,56 +4,84 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/**
- * SecurityConfig
- *
- * Spring Security configuration for the Quantity Measurement application.
- *
- * For this UC all requests are permitted without authentication, allowing development
- * and testing to proceed without credential management. In a production environment,
- * replace the open {@code permitAll()} rule with role-based access control using
- * mechanisms such as JWT tokens or OAuth2.
- *
- * Key settings:
- * <ul>
- *   <li><b>CSRF disabled</b> — stateless REST APIs do not require CSRF tokens.</li>
- *   <li><b>All requests permitted</b> — no authentication required.</li>
- *   <li><b>Frame options: sameOrigin</b> — required for the H2 console to render
- *       correctly in a browser, since it uses an iframe internally.</li>
- *   <li><b>HTTP Basic and form login disabled</b> — prevents unwanted browser
- *       authentication popups when accessing API endpoints.</li>
- * </ul>
- *
- */
+import java.util.Arrays;
+
 @Configuration
 @EnableWebSecurity
+/**
+ * Security configuration for the Quantity Measurement Application.
+ * This class configures Spring Security to allow cross-origin requests (CORS),
+ * disable CSRF for REST interactions, and define permit-all access for development.
+ */
 public class SecurityConfig {
 
     /**
-     * Configures the application-wide HTTP security filter chain.
-     *
-     * @param http the {@link HttpSecurity} builder
-     * @return the configured {@link SecurityFilterChain}
-     * @throws Exception if the security configuration fails
+     * Configure Security Filter Chain
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(
-        		auth -> auth.anyRequest()
-        					.permitAll()
+        http
+            // Enable CORS
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+            // Disable CSRF (IMPORTANT for REST APIs)
+            .csrf(csrf -> csrf.disable())
+
+            // Stateless session (No session storage)
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            .headers(
-            	headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+
+            // Allow all requests (for development)
+            .authorizeHttpRequests(auth ->
+                auth.anyRequest().permitAll()
             )
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable);
+
+            // Allow H2 Console (for development only)
+            .headers(headers ->
+                headers.frameOptions(frame -> frame.disable())
+            );
 
         return http.build();
+    }
+
+    /**
+     * Configure CORS
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Allow frontend origins
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://localhost:8080"
+        ));
+
+        // Allow HTTP methods
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
+        // Allow headers
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        // Allow credentials (cookies, auth headers)
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 }

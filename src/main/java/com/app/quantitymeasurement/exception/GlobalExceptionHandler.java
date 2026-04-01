@@ -1,176 +1,131 @@
 package com.app.quantitymeasurement.exception;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-/**
- * GlobalExceptionHandler
- *
- * Centralised exception handler for all REST controllers in the application.
- * {@code @ControllerAdvice} intercepts exceptions thrown by any controller and
- * returns consistent, structured JSON error responses instead of raw stack traces.
- *
- * <p>Handlers defined here:</p>
- * <ul>
- *   <li>{@link #handleMethodArgumentNotValidException} — Bean Validation failures
- *       ({@code @Valid} constraint violations). Returns {@code 400 Bad Request} with
- *       a list of field-level error messages.</li>
- *   <li>{@link #handleQuantityException} — Domain errors thrown by the service layer
- *       (e.g., incompatible units, unsupported operations). Returns {@code 400}.</li>
- *   <li>{@link #handleIllegalArgumentException} — Invalid method arguments. Returns {@code 400}.</li>
- *   <li>{@link #handleGlobalException} — Catch-all for any unhandled exception.
- *       Returns {@code 500 Internal Server Error}.</li>
- * </ul>
- *
- * <p>All error responses share the same JSON structure:</p>
- * <pre>
- * {
- *   "timestamp": "2024-01-01T12:00:00",
- *   "status":    400,
- *   "error":     "Quantity Measurement Error",
- *   "message":   "...",
- *   "path":      "/api/v1/quantities/add"
- * }
- * </pre>
- */
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+
 @ControllerAdvice
+/**
+ * Global Exception Handler for the Quantity Measurement Application.
+ * This class intercepts various exceptions thrown by the controllers and
+ * returns structured error responses with appropriate HTTP status codes.
+ */
 public class GlobalExceptionHandler {
 
-    private static final Logger logger = Logger.getLogger(GlobalExceptionHandler.class.getName());
+    private static final Logger logger =
+            Logger.getLogger(GlobalExceptionHandler.class.getName());
 
-    /**
-     * Handles Bean Validation failures that arise when a {@code @Valid}-annotated
-     * request body fails its constraints.
-     *
-     * <p>All field-level error messages are collected and joined into a single
-     * {@code message} string so the client receives full feedback in one response.</p>
-     *
-     * @param ex      the validation exception
-     * @param request the current HTTP request (used for the {@code path} field)
-     * @return {@code 400 Bad Request} with a structured validation error body
-     */
+    // Error Response Class
+    static class ErrorResponse {
+        public LocalDateTime timestamp;
+        public int status;
+        public String error;
+        public String message;
+        public String path;
+    }
+
+    // 1. Validation Errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(
+    public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
+            WebRequest request) {
 
-        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
-            .map(FieldError::getDefaultMessage)
-            .collect(Collectors.joining("; "));
+        List<String> errMsg = ex.getBindingResult()
+                .getAllErrors()
+                .stream()
+                .map(ObjectError::getDefaultMessage)
+                .collect(Collectors.toList());
 
-        logger.warning("Validation failed: " + errorMessage);
+        ErrorResponse error = new ErrorResponse();
+        error.timestamp = LocalDateTime.now();
+        error.status = HttpStatus.BAD_REQUEST.value();
+        error.error = "Validation Error";
+        error.message = String.join(", ", errMsg);
+        error.path = request.getDescription(false).replace("uri=", "");
 
-        return ResponseEntity.badRequest().body(buildErrorBody(
-            HttpStatus.BAD_REQUEST.value(),
-            "Quantity Measurement Error",
-            errorMessage,
-            ex.getBindingResult().getObjectName()
-        ));
+        logger.warning("Validation Error: " + error.message);
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Handles {@link QuantityMeasurementException} thrown by the service layer,
-     * for example when two quantities of incompatible types are compared or an
-     * unsupported arithmetic operation is attempted.
-     *
-     * @param ex      the quantity measurement exception
-     * @param request the current HTTP request
-     * @return {@code 400 Bad Request} with a structured error body
-     */
+    // 2. Custom Exception
     @ExceptionHandler(QuantityMeasurementException.class)
-    public ResponseEntity<Map<String, Object>> handleQuantityException(
+    public ResponseEntity<ErrorResponse> handleQuantityException(
             QuantityMeasurementException ex,
-            HttpServletRequest request) {
+            WebRequest request) {
 
-        logger.warning("QuantityMeasurementException: " + ex.getMessage());
+        ErrorResponse error = new ErrorResponse();
+        error.timestamp = LocalDateTime.now();
+        error.status = HttpStatus.BAD_REQUEST.value();
+        error.error = "Quantity Measurement Error";
+        error.message = ex.getMessage();
+        error.path = request.getDescription(false).replace("uri=", "");
 
-        return ResponseEntity.badRequest().body(buildErrorBody(
-            HttpStatus.BAD_REQUEST.value(),
-            "Quantity Measurement Error",
-            ex.getMessage(),
-            request.getRequestURI()
-        ));
+        logger.warning("Quantity Error: " + ex.getMessage());
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Handles {@link IllegalArgumentException} thrown when an invalid argument
-     * is passed to a service or utility method (e.g., an unrecognised unit name).
-     *
-     * @param ex      the exception
-     * @param request the current HTTP request
-     * @return {@code 400 Bad Request} with a structured error body
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(
-            IllegalArgumentException ex,
-            HttpServletRequest request) {
+    // 3. Arithmetic Exception → 500 Internal Server Error
+    @ExceptionHandler(ArithmeticException.class)
+    public ResponseEntity<ErrorResponse> handleArithmeticException(
+            ArithmeticException ex,
+            WebRequest request) {
 
-        logger.warning("IllegalArgumentException: " + ex.getMessage());
+        ErrorResponse error = new ErrorResponse();
+        error.timestamp = LocalDateTime.now();
+        error.status = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        error.error = "Internal Server Error";
+        error.message = ex.getMessage();
+        error.path = request.getDescription(false).replace("uri=", "");
 
-        return ResponseEntity.badRequest().body(buildErrorBody(
-            HttpStatus.BAD_REQUEST.value(),
-            "Quantity Measurement Error",
-            ex.getMessage(),
-            request.getRequestURI()
-        ));
+        logger.severe("Arithmetic Error: " + ex.getMessage());
+
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    /**
-     * Catch-all handler for any exception not covered by a more specific handler above.
-     * Ensures that unhandled errors always produce a structured response rather than
-     * an empty body or raw stack trace.
-     *
-     * @param ex      the unhandled exception
-     * @param request the current HTTP request
-     * @return {@code 500 Internal Server Error} with a structured error body
-     */
+    // 4. Runtime Exception → 400 Bad Request
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(
+            RuntimeException ex,
+            WebRequest request) {
+
+        ErrorResponse error = new ErrorResponse();
+        error.timestamp = LocalDateTime.now();
+        error.status = HttpStatus.BAD_REQUEST.value();
+        error.error = "Bad Request";
+        error.message = ex.getMessage();
+        error.path = request.getDescription(false).replace("uri=", "");
+
+        logger.warning("Runtime Error: " + ex.getMessage());
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // 4. Global Exception → 500 Internal Server Error
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGlobalException(
+    public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex,
-            HttpServletRequest request) {
+            WebRequest request) {
 
-        logger.severe("Unhandled exception: " + ex.getMessage());
+        ErrorResponse error = new ErrorResponse();
+        error.timestamp = LocalDateTime.now();
+        error.status = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        error.error = "Internal Server Error";
+        error.message = ex.getMessage();
+        error.path = request.getDescription(false).replace("uri=", "");
 
-        return ResponseEntity.internalServerError().body(buildErrorBody(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Internal Server Error",
-            ex.getMessage(),
-            request.getRequestURI()
-        ));
-    }
+        logger.severe("Global Error: " + ex.getMessage());
 
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
-
-    /**
-     * Builds the standardised error response map used by all handlers.
-     *
-     * @param status  HTTP status code
-     * @param error   short error category label
-     * @param message detailed error description
-     * @param path    request path that triggered the error
-     * @return map ready to be serialised as the JSON response body
-     */
-    private Map<String, Object> buildErrorBody(int status, String error,
-                                               String message, String path) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status",    status);
-        body.put("error",     error);
-        body.put("message",   message);
-        body.put("path",      path);
-        return body;
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

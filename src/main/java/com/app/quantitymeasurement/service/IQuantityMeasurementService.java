@@ -6,125 +6,48 @@ import com.app.quantitymeasurement.model.QuantityMeasurementDTO;
 import java.util.List;
 
 /**
- * IQuantityMeasurementService
- *
- * Service interface defining the business operations available in the Quantity
- * Measurement application.
- *
- * <p>Every operation accepts one or two {@link QuantityDTO} inputs and returns a
- * {@link QuantityMeasurementDTO} that includes both the operand details and the
- * result, making it suitable for direct use as an API response.</p>
- *
- * <p>History and count methods allow callers to query persisted operation records
- * without going directly to the repository.</p>
- *
+ * Service interface for Quantity Measurement operations.
+ * Defines methods for comparing, converting, and performing arithmetic 
+ * on quantities, as well as accessing measurement history.
  */
 public interface IQuantityMeasurementService {
 
-    /**
-     * Compares two quantities for equality after converting both to their base unit.
-     *
-     * @param thisQuantityDTO first quantity
-     * @param thatQuantityDTO second quantity
-     * @return DTO whose {@code resultString} is {@code "true"} or {@code "false"}
-     */
+    // Compare two quantities
     QuantityMeasurementDTO compare(QuantityDTO thisQuantityDTO, QuantityDTO thatQuantityDTO);
 
-    /**
-     * Converts {@code thisQuantityDTO} to the unit specified by {@code thatQuantityDTO}.
-     * The value of the second argument is ignored; only its unit and measurement type
-     * are used as the conversion target.
-     *
-     * @param thisQuantityDTO source quantity
-     * @param thatQuantityDTO target unit descriptor
-     * @return DTO with the converted value in {@code resultValue}
-     */
-    QuantityMeasurementDTO convert(QuantityDTO thisQuantityDTO, QuantityDTO thatQuantityDTO);
+    // Convert quantity to another unit
+    QuantityMeasurementDTO convert(QuantityDTO quantityDTO, String targetUnit);
 
-    /**
-     * Adds two quantities and returns the result in the unit of the first operand.
-     *
-     * @param thisQuantityDTO first quantity
-     * @param thatQuantityDTO second quantity
-     * @return DTO with the sum in {@code resultValue}
-     */
+    // Add two quantities
     QuantityMeasurementDTO add(QuantityDTO thisQuantityDTO, QuantityDTO thatQuantityDTO);
 
-    /**
-     * Adds two quantities and converts the result to the specified target unit.
-     *
-     * @param thisQuantityDTO first quantity
-     * @param thatQuantityDTO second quantity
-     * @param targetUnitDTO   target unit for the result
-     * @return DTO with the sum expressed in the target unit
-     */
-    QuantityMeasurementDTO add(
-            QuantityDTO thisQuantityDTO,
-            QuantityDTO thatQuantityDTO,
-            QuantityDTO targetUnitDTO);
+    // Add two quantities with a target unit
+    QuantityMeasurementDTO add(QuantityDTO thisQuantityDTO, QuantityDTO thatQuantityDTO, QuantityDTO targetQuantityDTO);
 
-    /**
-     * Subtracts the second quantity from the first and returns the result in
-     * the unit of the first operand.
-     *
-     * @param thisQuantityDTO first quantity
-     * @param thatQuantityDTO quantity to subtract
-     * @return DTO with the difference in {@code resultValue}
-     */
+    // Subtract two quantities
     QuantityMeasurementDTO subtract(QuantityDTO thisQuantityDTO, QuantityDTO thatQuantityDTO);
 
-    /**
-     * Subtracts the second quantity from the first and converts the result to
-     * the specified target unit.
-     *
-     * @param thisQuantityDTO first quantity
-     * @param thatQuantityDTO quantity to subtract
-     * @param targetUnitDTO   target unit for the result
-     * @return DTO with the difference expressed in the target unit
-     */
-    QuantityMeasurementDTO subtract(
-            QuantityDTO thisQuantityDTO,
-            QuantityDTO thatQuantityDTO,
-            QuantityDTO targetUnitDTO);
+    // Subtract two quantities with a target unit
+    QuantityMeasurementDTO subtract(QuantityDTO thisQuantityDTO, QuantityDTO thatQuantityDTO, QuantityDTO targetQuantityDTO);
 
-    /**
-     * Divides the first quantity by the second and returns the dimensionless ratio.
-     *
-     * @param thisQuantityDTO dividend
-     * @param thatQuantityDTO divisor
-     * @return DTO with the ratio in {@code resultValue}
-     */
-    QuantityMeasurementDTO divide(QuantityDTO thisQuantityDTO, QuantityDTO thatQuantityDTO);
+    // Multiply quantity
+    QuantityMeasurementDTO multiply(QuantityDTO quantityDTO, double factor);
 
-    /**
-     * Returns all persisted operation records that match the given operation type.
-     *
-     * @param operation operation name to filter by (e.g., {@code "compare"}, {@code "add"})
-     * @return list of matching DTOs
-     */
-    List<QuantityMeasurementDTO> getHistoryByOperation(String operation);
+    // Divide quantity by a scalar
+    QuantityMeasurementDTO divide(QuantityDTO quantityDTO, double divisor);
 
-    /**
-     * Returns all persisted operation records whose first operand belongs to
-     * the given measurement type.
-     *
-     * @param measurementType measurement category to filter by (e.g., {@code "LengthUnit"})
-     * @return list of matching DTOs
-     */
-    List<QuantityMeasurementDTO> getHistoryByMeasurementType(String measurementType);
+    // Divide two quantities (ratio)
+    QuantityMeasurementDTO divide(QuantityDTO q1, QuantityDTO q2);
 
-    /**
-     * Returns the count of successful (non-error) operations for the given type.
-     *
-     * @param operation operation name to count
-     * @return count of successful records
-     */
+    // Get operation history
+    List<QuantityMeasurementDTO> getOperationHistory(String operation);
+
+    // Get measurements by type
+    List<QuantityMeasurementDTO> getMeasurementsByType(String measurementType);
+
+    // Count operations
     long getOperationCount(String operation);
 
-    /**
-     * Returns all persisted records that represent failed operations.
-     *
-     * @return list of error DTOs
-     */
+    // Get error history
     List<QuantityMeasurementDTO> getErrorHistory();
 }
