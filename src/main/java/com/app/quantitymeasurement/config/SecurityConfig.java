@@ -1,6 +1,10 @@
+
 package com.app.quantitymeasurement.config;
 
 import java.util.Arrays;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +16,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -20,18 +30,6 @@ import com.app.quantitymeasurement.security.CustomOAuth2UserService;
 import com.app.quantitymeasurement.security.JwtAuthenticationFilter;
 import com.app.quantitymeasurement.security.OAuth2AuthenticationSuccessHandler;
 
-/**
- * Spring Security configuration for the Quantity Measurement Application.
- *
- * <p>Configures:
- * <ul>
- *   <li>Stateless JWT-based API security</li>
- *   <li>Google OAuth2 login flow with a custom user service and success handler</li>
- *   <li>Endpoint authorization rules (public vs. protected)</li>
- *   <li>CORS policy for frontend origins</li>
- * </ul>
- * </p>
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -42,47 +40,38 @@ public class SecurityConfig {
     @Autowired
     private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
-    /**
-     * Registers the JWT Authentication Filter as a Spring Bean.
-     * Defined here (not as @Component) to avoid double-registration by Spring Boot.
-     */
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    // JWT Filter Bean
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
     }
 
-    /**
-     * Configures the main Security Filter Chain.
-     *
-     * <p>Public endpoints (Swagger, OAuth2 redirects, auth APIs) are allowed without
-     * a token. All other endpoints require a valid JWT.</p>
-     *
-     * @param http the HttpSecurity builder
-     * @return the built SecurityFilterChain
-     */
+    // MAIN SECURITY CONFIG
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // Enable CORS with the configured source
+            // CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            // Disable CSRF (stateless REST API — no cookies)
+            // Disable CSRF
             .csrf(csrf -> csrf.disable())
 
-            // Stateless session — JWTs are self-contained, no server-side session needed
+            // ✅ FIXED: allow session for OAuth
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
 
-            // Allow H2 console iframes
+            // Allow H2 console frames
             .headers(headers ->
                 headers.frameOptions(frame -> frame.disable())
             )
 
-            // Authorization rules — no RBAC, all authenticated users have the same access
+            // Authorization Rules
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints — no token required
                 .requestMatchers(
                     "/h2-console/**",
                     "/api-docs/**",
@@ -93,14 +82,17 @@ public class SecurityConfig {
                     "/login/**",
                     "/api/auth/**"
                 ).permitAll()
-                // All other requests need a valid JWT
                 .anyRequest().authenticated()
             )
 
-            // Google OAuth2 Login configuration
+            // GOOGLE OAUTH2 LOGIN
             .oauth2Login(oauth2 -> oauth2
                 .authorizationEndpoint(endpoint ->
-                    endpoint.baseUri("/oauth2/authorize")
+                    endpoint
+                        .baseUri("/oauth2/authorize")
+                        .authorizationRequestResolver(
+                            authorizationRequestResolver(clientRegistrationRepository)
+                        )
                 )
                 .redirectionEndpoint(endpoint ->
                     endpoint.baseUri("/login/oauth2/code/*")
@@ -109,57 +101,86 @@ public class SecurityConfig {
                     userInfo.userService(customOAuth2UserService)
                 )
                 .successHandler(oAuth2AuthenticationSuccessHandler)
+            )
+
+            // ✅ FIXED: return 401 instead of redirect for APIs
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Unauthorized");
+                })
             );
 
-        // Insert JWT filter before the standard username/password filter
+        // JWT Filter
         http.addFilterBefore(jwtAuthenticationFilter(),
                 UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /**
-     * Exposes the AuthenticationManager bean for use in any local authentication logic.
-     *
-     * @param authenticationConfiguration Spring's auto-configured auth configuration
-     * @return the AuthenticationManager
-     */
+    // FORCE GOOGLE ACCOUNT SELECTION
+    @Bean
+    public OAuth2AuthorizationRequestResolver authorizationRequestResolver(
+            ClientRegistrationRepository repo) {
+
+        DefaultOAuth2AuthorizationRequestResolver defaultResolver =
+                new DefaultOAuth2AuthorizationRequestResolver(
+                        repo, "/oauth2/authorize");
+
+        return new OAuth2AuthorizationRequestResolver() {
+
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+                return customize(defaultResolver.resolve(request));
+            }
+
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
+                return customize(defaultResolver.resolve(request, clientRegistrationId));
+            }
+
+            private OAuth2AuthorizationRequest customize(OAuth2AuthorizationRequest request) {
+                if (request == null) return null;
+
+                return OAuth2AuthorizationRequest.from(request)
+                        .additionalParameters(params -> params.put("prompt", "select_account"))
+                        .build();
+            }
+        };
+    }
+
+    // Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    // Password Encoder
     @Bean
     public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
         return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
     }
 
-    /**
-     * CORS configuration allowing the frontend origin and common HTTP methods.
-     *
-     * @return the CORS configuration source
-     */
+    // CORS CONFIG
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allow frontend origins
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
                 "http://localhost:4200",
                 "http://localhost:8080"
         ));
 
-        // Allow HTTP methods
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
         ));
 
-        // Allow specific headers
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"
+        ));
 
-        // Allow credentials (auth headers, cookies)
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

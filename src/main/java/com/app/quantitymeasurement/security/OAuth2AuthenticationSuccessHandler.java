@@ -18,10 +18,10 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Handles the final step in the OAuth2 login flow for the REST API.
  *
- * <p>After Google authenticates the user and the {@link CustomOAuth2UserService}
+ * <p>After Google authenticates the user and the CustomOAuth2UserService
  * saves their record, this handler creates a signed JWT and redirects the client
  * to the configured frontend URL with the token as a query parameter,
- * e.g. {@code http://localhost:3000/oauth2/redirect?token=<JWT>}.</p>
+ * e.g. {@code http://localhost:4200/login?token=<JWT>}.</p>
  */
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -31,8 +31,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Autowired
     private JwtTokenProvider tokenProvider;
 
-    /** The frontend URL to redirect to with the generated token. */
-    @Value("${app.oauth2.redirectUri:http://localhost:3000/oauth2/redirect}")
+    /** * The frontend URL to redirect to with the generated token. 
+     * Updated default to 4200 to match Angular's default port.
+     */
+    @Value("${app.oauth2.redirectUri:http://localhost:4200/login}")
     private String redirectUri;
 
     /**
@@ -47,6 +49,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
+        
         String targetUrl = determineTargetUrl(authentication);
 
         if (response.isCommitted()) {
@@ -55,6 +58,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
 
         clearAuthenticationAttributes(request);
+        
+        logger.info("Authentication successful. Redirecting user to frontend at: {}", targetUrl);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
@@ -65,10 +70,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
      * @return the full redirect URL including the token
      */
     protected String determineTargetUrl(Authentication authentication) {
+        // Generate the JWT Token using the existing Provider
         String token = tokenProvider.generateToken(authentication);
 
+        // Explicitly build the URI to ensure no encoding issues with the JWT string
         return UriComponentsBuilder.fromUriString(redirectUri)
                 .queryParam("token", token)
-                .build().toUriString();
+                .build()
+                .toUriString();
     }
 }

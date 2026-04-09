@@ -1,3 +1,4 @@
+
 package com.app.quantitymeasurement.service;
 
 import java.time.Instant;
@@ -48,7 +49,9 @@ public class RefreshTokenService {
 
         // Rotate: delete any existing refresh token for this user
         refreshTokenRepository.deleteByUser(user);
-
+        // FORCE DELETE EXECUTION IMMEDIATELY
+        refreshTokenRepository.flush();
+        
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
                 .token(UUID.randomUUID().toString())
