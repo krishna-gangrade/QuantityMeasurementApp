@@ -1,4 +1,3 @@
-
 package com.app.quantitymeasurement.entity;
 
 import jakarta.persistence.*;
