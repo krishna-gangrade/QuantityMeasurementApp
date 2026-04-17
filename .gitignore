@@ -1,3 +1,6 @@
+# Metadata files
+.metadata
+
 # Maven
 target/
 pom.xml.tag
